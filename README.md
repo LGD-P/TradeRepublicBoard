@@ -158,6 +158,9 @@ empty, to fill by hand):
 - The only outbound requests happen with `--auto-prices`, and only send an **ISIN**
   (a public identifier) to the price sources above — never your holdings or amounts.
 - No CDN, no analytics, no telemetry.
+- The CSV is treated as **untrusted input**: size cap, UTF-8 check, required-column
+  check, row/field caps, and **spreadsheet formula-injection** neutralisation
+  (`= + - @`) before anything is written to the workbook.
 
 ---
 
@@ -165,10 +168,10 @@ empty, to fill by hand):
 
 - ✅ directory watcher that ingests a new export and deletes it once processed
   (`--watch`);
-- hardened, validated CSV ingestion;
+- ✅ hardened, validated CSV ingestion (formula-injection safe);
 - Dockerisation;
-- a proper web dashboard;
-- a TDD test suite and CI.
+- a proper web dashboard (with monthly / yearly PDF & CSV export);
+- a TDD test suite and CI (`tests/` already started).
 
 ---
 

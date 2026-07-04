@@ -239,6 +239,13 @@ TXT = {
         "cli_tax": "  %s: interest %.2f € | realised gain %.2f € | contributions %.2f €",
         "cli_backup": "  (backup: %s.bak)",
         "cli_no_csv": "CSV not found: %s",
+        "cli_bad_ext": "input must be a .csv file: %s",
+        "cli_too_big": "file too large (> %d MB): %s",
+        "cli_not_tr": "not a Trade Republic export (missing columns: %s)",
+        "cli_extra_cols": "  ! unexpected extra columns ignored: %s",
+        "cli_too_many_rows": "too many rows (> %d)",
+        "cli_field_too_long": "a field exceeds %d characters (row %d)",
+        "cli_bad_encoding": "file is not valid UTF-8: %s",
     },
     "fr": {
         "sheet_readme": "Lisez-moi",
@@ -400,6 +407,13 @@ TXT = {
         "cli_tax": "  %s : intérêts %.2f € | PV réalisée %.2f € | versements %.2f €",
         "cli_backup": "  (sauvegarde : %s.bak)",
         "cli_no_csv": "CSV introuvable : %s",
+        "cli_bad_ext": "le fichier d'entrée doit être un .csv : %s",
+        "cli_too_big": "fichier trop volumineux (> %d Mo) : %s",
+        "cli_not_tr": "pas un export Trade Republic (colonnes manquantes : %s)",
+        "cli_extra_cols": "  ! colonnes supplémentaires inattendues ignorées : %s",
+        "cli_too_many_rows": "trop de lignes (> %d)",
+        "cli_field_too_long": "un champ dépasse %d caractères (ligne %d)",
+        "cli_bad_encoding": "fichier non valide en UTF-8 : %s",
     },
 }
 
@@ -512,9 +526,66 @@ def colour_pl(ws, *ranges):
 #  Data layer
 # ==========================================================================
 
-def read_csv(path):
-    with open(path, newline="", encoding="utf-8-sig") as f:
-        return list(csv.DictReader(f))
+# --- Hardened ingestion (treat the CSV as untrusted input) -----------------
+#
+# The columns the tool actually reads. Their presence is the signature of a
+# Trade Republic export; extra columns are tolerated (survives TR schema tweaks).
+REQUIRED_COLUMNS = ["date", "category", "type", "asset_class", "name", "symbol",
+                    "shares", "price", "amount", "fee"]
+# The full known Trade Republic export schema — used only to decide whether an
+# extra column is genuinely unexpected (worth a warning) or just an unused field.
+KNOWN_COLUMNS = set(REQUIRED_COLUMNS) | {
+    "datetime", "account_type", "tax", "currency", "original_amount",
+    "original_currency", "fx_rate", "description", "transaction_id",
+    "counterparty_name", "counterparty_iban", "payment_reference", "mcc_code"}
+MAX_FILE_BYTES = 10 * 1024 * 1024                  # 10 MB — TR exports are tiny
+MAX_ROWS = 200_000
+MAX_FIELD_LEN = 2000
+
+
+def safe_text(s):
+    """Neutralise CSV / formula injection for any CSV-derived string written to a
+    cell. openpyxl treats a value starting with '=' as a formula; '+ - @' are the
+    other classic spreadsheet-injection triggers. Prefix them so Excel keeps text.
+    """
+    if isinstance(s, str) and s[:1] in ("=", "+", "-", "@"):
+        return "'" + s
+    return s
+
+
+def validate_export(path):
+    """Validate an untrusted CSV and return its rows, or raise SystemExit.
+
+    Checks: extension, size cap, UTF-8 decoding, required columns, row and field
+    caps. Reused by the CLI and the watcher.
+    """
+    if not os.path.exists(path):
+        raise SystemExit(S["cli_no_csv"] % path)
+    if not path.lower().endswith(".csv"):
+        raise SystemExit(S["cli_bad_ext"] % path)
+    if os.path.getsize(path) > MAX_FILE_BYTES:
+        raise SystemExit(S["cli_too_big"] % (MAX_FILE_BYTES // (1024 * 1024), path))
+    try:
+        with open(path, newline="", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            fields = reader.fieldnames or []
+            missing = [c for c in REQUIRED_COLUMNS if c not in fields]
+            if missing:
+                raise SystemExit(S["cli_not_tr"] % ", ".join(missing))
+            extra = [c for c in fields if c and c not in KNOWN_COLUMNS]
+            if extra:
+                print(S["cli_extra_cols"] % ", ".join(extra))
+            rows = []
+            for i, row in enumerate(reader):
+                if i >= MAX_ROWS:
+                    raise SystemExit(S["cli_too_many_rows"] % MAX_ROWS)
+                for v in row.values():
+                    if isinstance(v, str) and len(v) > MAX_FIELD_LEN:
+                        raise SystemExit(S["cli_field_too_long"] % (MAX_FIELD_LEN, i + 2))
+                rows.append(row)
+    except UnicodeDecodeError:
+        raise SystemExit(S["cli_bad_encoding"] % path)
+    return rows
 
 
 def num(val):
@@ -532,7 +603,7 @@ def index_names(rows):
 
 
 def display_name(row):
-    return _ISIN_NAMES.get(row["symbol"]) or row["name"] or row["symbol"] or "?"
+    return safe_text(_ISIN_NAMES.get(row["symbol"]) or row["name"] or row["symbol"] or "?")
 
 
 def norm_name(s):
@@ -769,7 +840,7 @@ def build_investments(ws, entries, name_isin, by_isin, by_name):
         isin = name_isin.get(name) if name else None
         price, updated = price_for(isin, name, by_isin, by_name) if name else (None, None)
         put(ws, r, 1, name, F_LABEL, FILL_LIGHT, align=A_L, border=B_ALL)
-        put(ws, r, 2, isin, F_CALC, FILL_LIGHT, None, A_CV, B_ALL)
+        put(ws, r, 2, safe_text(isin), F_CALC, FILL_LIGHT, None, A_CV, B_ALL)
         put(ws, r, 3, price, F_INPUT, FILL_YELLOW, FMT_PRICE, border=B_ALL)
         put(ws, r, 4, updated, F_INPUT, FILL_YELLOW, FMT_DATE, border=B_ALL)
     etf_range = "$A${a}:$C${b}".format(a=ETF_FIRST, b=ETF_LAST)
@@ -1299,7 +1370,7 @@ def build_stock(ws, trades, state, real_isin, by_isin, by_name):
         isin = s["isin"] if s else None
         price, updated = price_for(isin, name, by_isin, by_name) if name else (None, None)
         put(ws, r, 1, name, F_LABEL, FILL_LIGHT, align=A_L, border=B_ALL)
-        put(ws, r, 2, isin, F_CALC, FILL_LIGHT, None, A_CV, B_ALL)
+        put(ws, r, 2, safe_text(isin), F_CALC, FILL_LIGHT, None, A_CV, B_ALL)
         put(ws, r, 3, price, F_INPUT, FILL_YELLOW, FMT_PRICE, border=B_ALL)
         put(ws, r, 4, updated, F_INPUT, FILL_YELLOW, FMT_DATE, border=B_ALL)
     price_range = "$A${a}:$C${b}".format(a=PRICE_FIRST, b=PRICE_FIRST + n_slots - 1)
@@ -1316,7 +1387,7 @@ def build_stock(ws, trades, state, real_isin, by_isin, by_name):
         put(ws, r, 1, t["date"], F_CALC, None, FMT_DATE, border=B_ALL)
         put(ws, r, 2, typ, F_CALC, None, None, A_CV, B_ALL)
         put(ws, r, 3, t["name"], F_CALC, None, None, A_L, B_ALL)
-        put(ws, r, 4, t["isin"], F_CALC, None, None, A_L, B_ALL)
+        put(ws, r, 4, safe_text(t["isin"]), F_CALC, None, None, A_L, B_ALL)
         put(ws, r, 5, t["qty"], F_CALC, None, FMT_SHARES, border=B_ALL)
         put(ws, r, 6, t["price"], F_CALC, None, FMT_PRICE, border=B_ALL)
         put(ws, r, 7, t["fee"], F_CALC, None, FMT_EUR, border=B_ALL)
@@ -1508,10 +1579,7 @@ def generate(args):
     """Read the CSV in args.fi and write the workbook to args.fo."""
     select_language(args.lang)
 
-    if not os.path.exists(args.fi):
-        raise SystemExit(S["cli_no_csv"] % args.fi)
-
-    rows = read_csv(args.fi)
+    rows = validate_export(args.fi)                # untrusted input -> validated
     _ISIN_NAMES.update(index_names(rows))          # isin -> name (from the CSV)
     name_isin = {v: k for k, v in _ISIN_NAMES.items()}
     entries = build_etf_journal(rows)
