@@ -57,3 +57,9 @@ out/
 node_modules/
 *.tsbuildinfo
 .vite/
+
+# SvelteKit / static build output
+.svelte-kit/
+packages/*/build/
+.vercel/
+.netlify/

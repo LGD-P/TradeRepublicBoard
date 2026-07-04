@@ -38,3 +38,24 @@ jobs:
       - run: npm run typecheck
       - name: Run vitest against the shared fixtures
         run: npm test
+
+  web:
+    name: Web app build & check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install core (source dependency of the web app)
+        run: npm ci
+        working-directory: packages/core
+      - name: Install web
+        run: npm ci
+        working-directory: packages/web
+      - name: Type-check
+        run: npm run check
+        working-directory: packages/web
+      - name: Build (static)
+        run: npm run build
+        working-directory: packages/web
