@@ -152,15 +152,20 @@ empty, to fill by hand):
 
 ---
 
-## Privacy
+## Privacy & security
+
+Security and privacy are first-class goals here — see **[SECURITY.md](SECURITY.md)**.
 
 - The tool runs **entirely on your machine**. Your CSV never leaves it.
 - The only outbound requests happen with `--auto-prices`, and only send an **ISIN**
   (a public identifier) to the price sources above — never your holdings or amounts.
 - No CDN, no analytics, no telemetry.
-- The CSV is treated as **untrusted input**: size cap, UTF-8 check, required-column
-  check, row/field caps, and **spreadsheet formula-injection** neutralisation
-  (`= + - @`) before anything is written to the workbook.
+- **OWASP-aware**: the CSV is treated as **untrusted input** (size cap, UTF-8 check,
+  required-column check, row/field caps, and **spreadsheet formula-injection**
+  neutralisation `= + - @`), and **no useless data is retained** — processed in
+  memory, discarded after use.
+- Correctness is **test-gated (TDD)**: the Python and TypeScript cores must produce
+  an identical model on the shared fixtures (CI).
 
 ---
 

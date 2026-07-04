@@ -2,10 +2,6 @@
 #  NEVER commit personal / sensitive data. Deny-by-default for real exports.
 # ==========================================================================
 
-# Claude / assistant working files
-CLAUDE.md
-.claude/
-
 # Real Trade Republic exports and generated workbooks (personal data)
 Exportation*.csv
 transactions*.csv
