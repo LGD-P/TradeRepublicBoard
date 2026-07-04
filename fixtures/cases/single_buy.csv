@@ -1,0 +1,2 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2025-05-05T08:00:00Z","2025-05-05","DEFAULT","TRADING","BUY","FUND","iShares Core MSCI World USD (Acc)","IE00B4L5Y983","1.0000000000","123.4500","-123.45","","","EUR","","","","","fx-000001","","","",""

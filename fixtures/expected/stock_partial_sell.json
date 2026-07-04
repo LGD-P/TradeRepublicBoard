@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "instruments": [
+    {
+      "isin": "US0378331005",
+      "name": "Apple Inc."
+    }
+  ],
+  "etf_journal": [],
+  "stock_trades": [
+    {
+      "date": "2025-02-10",
+      "dir": "BUY",
+      "isin": "US0378331005",
+      "name": "Apple Inc.",
+      "qty": "6.0000000000",
+      "price": "210.0000",
+      "amount": "1260.00",
+      "fee": "1.00"
+    },
+    {
+      "date": "2025-04-11",
+      "dir": "BUY",
+      "isin": "US0378331005",
+      "name": "Apple Inc.",
+      "qty": "4.0000000000",
+      "price": "195.0000",
+      "amount": "780.00",
+      "fee": "1.00"
+    },
+    {
+      "date": "2025-06-12",
+      "dir": "SELL",
+      "isin": "US0378331005",
+      "name": "Apple Inc.",
+      "qty": "5.0000000000",
+      "price": "225.0000",
+      "amount": "1125.00",
+      "fee": "1.00"
+    }
+  ],
+  "stock_positions": [
+    {
+      "isin": "US0378331005",
+      "name": "Apple Inc.",
+      "shares_held": "5.0000000000",
+      "avg_cost": "204.2000",
+      "remaining_cost": "1021.00",
+      "realised_gain": "103.00"
+    }
+  ],
+  "monthly_value": [],
+  "tax": [
+    {
+      "year": 2025,
+      "interest": "0.00",
+      "realised_gain": "103.00",
+      "contributions": "0.00"
+    }
+  ]
+}

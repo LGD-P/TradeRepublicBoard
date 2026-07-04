@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "instruments": [
+    {
+      "isin": "IE00B4L5Y983",
+      "name": "iShares Core MSCI World USD (Acc)"
+    }
+  ],
+  "etf_journal": [
+    {
+      "date": "2025-03-15",
+      "kind": "buy",
+      "isin": "IE00B4L5Y983",
+      "name": "iShares Core MSCI World USD (Acc)",
+      "price": "100.0000",
+      "shares": "1.0000000000",
+      "total": "100.00",
+      "fee": "0.00",
+      "comment": null
+    },
+    {
+      "date": "2025-03-16",
+      "kind": "saveback",
+      "isin": "IE00B4L5Y983",
+      "name": "iShares Core MSCI World USD (Acc)",
+      "price": "100.0000",
+      "shares": "0.0500000000",
+      "total": "5.00",
+      "fee": "0.00",
+      "comment": "card_saveback"
+    },
+    {
+      "date": "2025-03-20",
+      "kind": "saveback",
+      "isin": "IE00B4L5Y983",
+      "name": "iShares Core MSCI World USD (Acc)",
+      "price": "100.0000",
+      "shares": "0.0073000000",
+      "total": "0.73",
+      "fee": "0.00",
+      "comment": "card_roundup"
+    }
+  ],
+  "stock_trades": [],
+  "stock_positions": [],
+  "monthly_value": [
+    {
+      "year": 2025,
+      "month": 3,
+      "buys": "100.00",
+      "saveback": "5.73",
+      "cost_of_month": "105.73",
+      "cumulative_cost": "105.73",
+      "portfolio_value": "105.73"
+    }
+  ],
+  "tax": [
+    {
+      "year": 2025,
+      "interest": "0.00",
+      "realised_gain": "0.00",
+      "contributions": "105.73"
+    }
+  ]
+}

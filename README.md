@@ -175,6 +175,20 @@ empty, to fill by hand):
 
 ---
 
+## Contributing
+
+The portfolio logic is a small, pure data layer with a **language-neutral model
+contract** ([`docs/MODEL.md`](docs/MODEL.md)). `tr_board.py --emit-model --fi <csv>`
+prints that model as JSON. Golden fixtures in [`fixtures/`](fixtures) freeze the
+expected model for a set of cases (incl. edge cases); CI checks the core against
+them. A future TypeScript core (for the web app) will run against the **same**
+fixtures, so the two implementations can never drift.
+
+```bash
+pip install openpyxl pytest
+python -m pytest -q
+```
+
 ## License
 
 [MIT](LICENSE) © LGD-P

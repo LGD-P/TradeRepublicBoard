@@ -1,0 +1,4 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2025-02-10T14:00:00Z","2025-02-10","DEFAULT","TRADING","BUY","STOCK","Apple Inc.","US0378331005","6.0000000000","210.0000","-1260.00","-1.00","","EUR","","","","","fx-000001","","","",""
+"2025-04-11T14:00:00Z","2025-04-11","DEFAULT","TRADING","BUY","STOCK","Apple Inc.","US0378331005","4.0000000000","195.0000","-780.00","-1.00","","EUR","","","","","fx-000002","","","",""
+"2025-06-12T14:00:00Z","2025-06-12","DEFAULT","TRADING","SELL","STOCK","Apple Inc.","US0378331005","5.0000000000","225.0000","1125.00","-1.00","","EUR","","","","","fx-000003","","","",""

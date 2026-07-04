@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "instruments": [
+    {
+      "isin": "IE00B4L5Y983",
+      "name": "iShares Core MSCI World USD (Acc)"
+    },
+    {
+      "isin": "IE00B5BMR087",
+      "name": "iShares Core S&P 500 USD (Acc)"
+    }
+  ],
+  "etf_journal": [
+    {
+      "date": "2025-01-15",
+      "kind": "buy",
+      "isin": "IE00B4L5Y983",
+      "name": "iShares Core MSCI World USD (Acc)",
+      "price": "95.1300",
+      "shares": "1.0512300000",
+      "total": "100.00",
+      "fee": "0.00",
+      "comment": null
+    },
+    {
+      "date": "2025-01-15",
+      "kind": "buy",
+      "isin": "IE00B5BMR087",
+      "name": "iShares Core S&P 500 USD (Acc)",
+      "price": "560.0000",
+      "shares": "0.1339290000",
+      "total": "75.00",
+      "fee": "0.00",
+      "comment": null
+    },
+    {
+      "date": "2025-01-16",
+      "kind": "saveback",
+      "isin": "IE00B4L5Y983",
+      "name": "iShares Core MSCI World USD (Acc)",
+      "price": "95.1300",
+      "shares": "0.0441540000",
+      "total": "4.20",
+      "fee": "0.00",
+      "comment": "card_saveback"
+    },
+    {
+      "date": "2025-02-17",
+      "kind": "buy",
+      "isin": "IE00B4L5Y983",
+      "name": "iShares Core MSCI World USD (Acc)",
+      "price": "96.8000",
+      "shares": "1.0330600000",
+      "total": "100.00",
+      "fee": "0.00",
+      "comment": null
+    },
+    {
+      "date": "2025-02-17",
+      "kind": "buy",
+      "isin": "IE00B5BMR087",
+      "name": "iShares Core S&P 500 USD (Acc)",
+      "price": "575.0000",
+      "shares": "0.1304340000",
+      "total": "75.00",
+      "fee": "0.00",
+      "comment": null
+    }
+  ],
+  "stock_trades": [],
+  "stock_positions": [],
+  "monthly_value": [
+    {
+      "year": 2025,
+      "month": 1,
+      "buys": "175.00",
+      "saveback": "4.20",
+      "cost_of_month": "179.20",
+      "cumulative_cost": "179.20",
+      "portfolio_value": "179.20"
+    },
+    {
+      "year": 2025,
+      "month": 2,
+      "buys": "175.00",
+      "saveback": "0.00",
+      "cost_of_month": "175.00",
+      "cumulative_cost": "354.20",
+      "portfolio_value": "358.04"
+    }
+  ],
+  "tax": [
+    {
+      "year": 2025,
+      "interest": "1.83",
+      "realised_gain": "0.00",
+      "contributions": "354.20"
+    }
+  ]
+}

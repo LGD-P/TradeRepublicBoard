@@ -41,6 +41,7 @@ import shutil
 import urllib.request
 from collections import Counter, defaultdict
 from datetime import datetime
+from decimal import ROUND_HALF_UP, Decimal
 
 import openpyxl
 from openpyxl import Workbook
@@ -679,21 +680,23 @@ def build_etf_journal(rows):
     entries = []
     for i, b in enumerate(buys):
         benefit = i in benefit_of
+        roundup = benefit and is_roundup(benefit_of[i])
         comment = None
         if benefit:
-            comment = S["roundup_card"] if is_roundup(benefit_of[i]) else S["saveback_card"]
+            comment = S["roundup_card"] if roundup else S["saveback_card"]
         entries.append(dict(
             date=datetime.strptime(b["date"], "%Y-%m-%d"),
-            kind="saveback" if benefit else "buy",
+            kind="saveback" if benefit else "buy", is_roundup=roundup,
             type=S["saveback"] if benefit else S["buy"],
-            name=display_name(b), price=num(b["price"]), shares=num(b["shares"]),
+            isin=b["symbol"], name=display_name(b),
+            price=num(b["price"]), shares=num(b["shares"]),
             total=round(abs(num(b["amount"]) or 0), 2),
             fee=round(abs(num(b["fee"]) or 0), 2),
             comment=comment))
     for v in sells:
         entries.append(dict(
-            date=datetime.strptime(v["date"], "%Y-%m-%d"), kind="sell", type=S["sell"],
-            name=display_name(v), price=num(v["price"]),
+            date=datetime.strptime(v["date"], "%Y-%m-%d"), kind="sell", is_roundup=False,
+            type=S["sell"], isin=v["symbol"], name=display_name(v), price=num(v["price"]),
             shares=-abs(num(v["shares"]) or 0),
             total=-round(abs(num(v["amount"]) or 0), 2),
             fee=round(abs(num(v["fee"]) or 0), 2), comment=S["sell"]))
@@ -787,6 +790,88 @@ def monthly_historic_value(entries, months):
         v = sum(cum[name] * last_price[name] for name in names if name in last_price)
         values.append(round(v, 2))
     return values
+
+
+# --- Language-neutral data model (the Python <-> TS drift contract) ---------
+#
+# compute_model() emits everything the pure data layer computes, deterministically
+# from the CSV alone (no live prices, no localisation). Monetary values are decimal
+# STRINGS: money 2 dp, prices 4 dp, shares 10 dp, all ROUND_HALF_UP. This canonical
+# form is what the future TypeScript core must reproduce exactly on the fixtures.
+
+def _q(x, places):
+    if x is None:
+        return None
+    return str(Decimal(str(x)).quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP))
+
+
+def _comment_code(e):
+    if e["kind"] == "saveback":
+        return "card_roundup" if e.get("is_roundup") else "card_saveback"
+    if e["kind"] == "sell":
+        return "sell"
+    return None
+
+
+def compute_model(rows):
+    """Return the canonical, language-neutral data model as a dict."""
+    _ISIN_NAMES.clear()
+    _ISIN_NAMES.update(index_names(rows))
+    entries = build_etf_journal(rows)
+    single = stock_trades(rows)
+    etf_trades = [to_trade(r) for r in rows
+                  if is_trade(r) and r["asset_class"] == "FUND" and r["symbol"]]
+    _, real_etf_year, _ = positions_wac(etf_trades)
+    stock_state, real_stock_year, real_stock_isin = positions_wac(single)
+    real_year = defaultdict(float)
+    for y, g in dict(real_etf_year).items():
+        real_year[y] += g
+    for y, g in real_stock_year.items():
+        real_year[y] += g
+    tax = tax_summary(rows, entries, real_year)
+    months = covered_months(entries)
+    values = monthly_historic_value(entries, months)
+
+    monthly, cum = [], 0.0
+    for (y, m), value in zip(months, values):
+        mb = sum(e["total"] for e in entries
+                 if e["date"].year == y and e["date"].month == m and e["kind"] == "buy")
+        ms = sum(e["total"] for e in entries
+                 if e["date"].year == y and e["date"].month == m and e["kind"] == "saveback")
+        cum += mb + ms
+        monthly.append({"year": y, "month": m, "buys": _q(mb, 2), "saveback": _q(ms, 2),
+                        "cost_of_month": _q(mb + ms, 2), "cumulative_cost": _q(cum, 2),
+                        "portfolio_value": _q(value, 2)})
+
+    return {
+        "schema": 1,
+        "instruments": [{"isin": i, "name": n} for i, n in sorted(_ISIN_NAMES.items())],
+        "etf_journal": [{
+            "date": e["date"].strftime("%Y-%m-%d"), "kind": e["kind"],
+            "isin": e.get("isin"), "name": e["name"],
+            "price": _q(e["price"], 4), "shares": _q(e["shares"], 10),
+            "total": _q(e["total"], 2), "fee": _q(e["fee"], 2),
+            "comment": _comment_code(e)} for e in entries],
+        "stock_trades": [{
+            "date": t["date"].strftime("%Y-%m-%d"), "dir": t["dir"], "isin": t["isin"],
+            "name": t["name"], "qty": _q(t["qty"], 10), "price": _q(t["price"], 4),
+            "amount": _q(t["amount"], 2), "fee": _q(t["fee"], 2)}
+            for t in sorted(single, key=lambda x: x["date"])],
+        "stock_positions": [{
+            "isin": s["isin"], "name": s["name"], "shares_held": _q(s["qty"], 10),
+            "avg_cost": _q(s["cost"] / s["qty"] if s["qty"] else 0, 4),
+            "remaining_cost": _q(s["cost"], 2),
+            "realised_gain": _q(real_stock_isin.get(s["isin"], 0.0), 2)}
+            for s in sorted(stock_state.values(), key=lambda x: x["name"])],
+        "monthly_value": monthly,
+        "tax": [{"year": int(y), "interest": _q(d["interest"], 2),
+                 "realised_gain": _q(d["gain"], 2), "contributions": _q(d["contrib"], 2)}
+                for y, d in tax.items()],
+    }
+
+
+def model_json(rows):
+    return json.dumps(compute_model(rows), ensure_ascii=False, indent=2)
 
 
 # ==========================================================================
@@ -1580,6 +1665,7 @@ def generate(args):
     select_language(args.lang)
 
     rows = validate_export(args.fi)                # untrusted input -> validated
+    _ISIN_NAMES.clear()
     _ISIN_NAMES.update(index_names(rows))          # isin -> name (from the CSV)
     name_isin = {v: k for k, v in _ISIN_NAMES.items()}
     entries = build_etf_journal(rows)
@@ -1658,8 +1744,16 @@ def main():
                         "and delete it on success (meant for cron / Task Scheduler)")
     p.add_argument("--watch-name", default="trade-republic-export.csv",
                    help="Expected export filename inside --watch DIR")
+    p.add_argument("--emit-model", action="store_true",
+                   help="Print the language-neutral data model as JSON (the parity "
+                        "contract for tests) and exit, without building the workbook")
     p.set_defaults(lang="en")
     args = p.parse_args()
+
+    if args.emit_model:
+        select_language(args.lang)
+        print(model_json(validate_export(args.fi)))
+        return
 
     if args.watch:
         src = os.path.join(args.watch, args.watch_name)

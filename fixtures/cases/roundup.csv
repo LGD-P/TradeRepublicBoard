@@ -1,0 +1,6 @@
+"datetime","date","account_type","category","type","asset_class","name","symbol","shares","price","amount","fee","tax","currency","original_amount","original_currency","fx_rate","description","transaction_id","counterparty_name","counterparty_iban","payment_reference","mcc_code"
+"2025-03-15T08:00:00Z","2025-03-15","DEFAULT","TRADING","BUY","FUND","iShares Core MSCI World USD (Acc)","IE00B4L5Y983","1.0000000000","100.0000","-100.00","","","EUR","","","","","fx-000001","","","",""
+"2025-03-16T00:00:00Z","2025-03-16","DEFAULT","CASH","BENEFITS_SAVEBACK","","","","","","5.00","","","EUR","","","","","fx-000002","","","",""
+"2025-03-16T08:00:00Z","2025-03-16","DEFAULT","TRADING","BUY","FUND","iShares Core MSCI World USD (Acc)","IE00B4L5Y983","0.0500000000","100.0000","-5.00","","","EUR","","","","","fx-000003","","","",""
+"2025-03-20T00:00:00Z","2025-03-20","DEFAULT","CASH","BENEFITS_SPARE_CHANGE","","","","","","0.73","","","EUR","","","","","fx-000004","","","",""
+"2025-03-20T08:00:00Z","2025-03-20","DEFAULT","TRADING","BUY","FUND","iShares Core MSCI World USD (Acc)","IE00B4L5Y983","0.0073000000","100.0000","-0.73","","","EUR","","","","","fx-000005","","","",""

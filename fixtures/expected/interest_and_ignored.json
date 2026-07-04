@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "instruments": [
+    {
+      "isin": "IE00B4L5Y983",
+      "name": "iShares Core MSCI World USD (Acc)"
+    }
+  ],
+  "etf_journal": [
+    {
+      "date": "2025-01-15",
+      "kind": "buy",
+      "isin": "IE00B4L5Y983",
+      "name": "iShares Core MSCI World USD (Acc)",
+      "price": "100.0000",
+      "shares": "1.0000000000",
+      "total": "100.00",
+      "fee": "0.00",
+      "comment": null
+    }
+  ],
+  "stock_trades": [],
+  "stock_positions": [],
+  "monthly_value": [
+    {
+      "year": 2025,
+      "month": 1,
+      "buys": "100.00",
+      "saveback": "0.00",
+      "cost_of_month": "100.00",
+      "cumulative_cost": "100.00",
+      "portfolio_value": "100.00"
+    }
+  ],
+  "tax": [
+    {
+      "year": 2025,
+      "interest": "2.15",
+      "realised_gain": "0.00",
+      "contributions": "100.00"
+    }
+  ]
+}
