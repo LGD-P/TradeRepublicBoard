@@ -21,5 +21,20 @@ jobs:
       - name: Run tests (ingestion + model contract)
         run: python -m pytest -q
 
-  # The TypeScript core (packages/core) will get its own job here in Phase 1,
-  # running vitest against the SAME fixtures/ so the two cores can never drift.
+  typescript:
+    name: TypeScript core & fixtures
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: packages/core/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Run vitest against the shared fixtures
+        run: npm test

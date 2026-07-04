@@ -56,3 +56,8 @@ sprints/
 # Watcher working dirs (may hold real exports / outputs)
 inbox/
 out/
+
+# Node / JS
+node_modules/
+*.tsbuildinfo
+.vite/

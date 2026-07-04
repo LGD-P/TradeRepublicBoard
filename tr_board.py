@@ -788,7 +788,7 @@ def monthly_historic_value(entries, months):
                 last_price[name] = month_price[(name, ym)]
             cum[name] += month_shares.get((name, ym), 0.0)
         v = sum(cum[name] * last_price[name] for name in names if name in last_price)
-        values.append(round(v, 2))
+        values.append(v)                           # rounded once at model emission (_q)
     return values
 
 
@@ -802,6 +802,8 @@ def monthly_historic_value(entries, months):
 def _q(x, places):
     if x is None:
         return None
+    if x == 0:
+        x = 0.0                                    # normalise -0.0 (JS has no "-0" string)
     return str(Decimal(str(x)).quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP))
 
 
