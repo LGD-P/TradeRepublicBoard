@@ -97,6 +97,22 @@ Try it right now on the bundled fake data:
 python tr_board.py --fi sample_data/transactions_sample.csv --fo demo.xlsx --en
 ```
 
+### Automate it (optional watcher)
+
+`--watch DIR` is a one-shot: if `DIR` contains the export file it processes it and
+**deletes it on success**, otherwise it exits quietly. Point your OS scheduler at it.
+
+```bash
+python tr_board.py --watch inbox --fo out/board.xlsx --auto-prices
+```
+
+- **Linux (cron, hourly):**
+  `0 * * * * cd /path/to/repo && python3 tr_board.py --watch inbox --fo out/board.xlsx --auto-prices`
+- **Windows (Task Scheduler):** register an hourly task running
+  `python C:\path\to\repo\tr_board.py --watch inbox --fo out\board.xlsx --auto-prices`
+
+The expected filename is `trade-republic-export.csv` (override with `--watch-name`).
+
 ---
 
 ## The sheets
@@ -147,11 +163,8 @@ empty, to fill by hand):
 
 ## Roadmap
 
-Planned work lives in [`sprints/todo`](sprints/todo) and moves to
-[`sprints/done`](sprints/done) once shipped:
-
-- a directory watcher that ingests a new export automatically and deletes it once
-  processed;
+- ✅ directory watcher that ingests a new export and deletes it once processed
+  (`--watch`);
 - hardened, validated CSV ingestion;
 - Dockerisation;
 - a proper web dashboard;

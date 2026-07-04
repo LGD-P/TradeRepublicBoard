@@ -49,3 +49,10 @@ Thumbs.db
 # LibreOffice lock files (contain user/host)
 .~lock.*#
 ~$*
+
+# Dev sprints kept local only (not published)
+sprints/
+
+# Watcher working dirs (may hold real exports / outputs)
+inbox/
+out/

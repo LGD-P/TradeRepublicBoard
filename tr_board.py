@@ -88,6 +88,7 @@ TXT = {
         "saveback": "Saveback",
         "sell": "Sell",
         "saveback_card": "Card saveback",
+        "roundup_card": "Card round-up",
         # Control column
         "ok": "OK",
         "gap": "gap",
@@ -251,6 +252,7 @@ TXT = {
         "saveback": "Saveback",
         "sell": "Vente",
         "saveback_card": "Saveback carte",
+        "roundup_card": "Arrondi carte",
         "ok": "OK",
         "gap": "écart",
         "total": "TOTAL",
@@ -568,19 +570,29 @@ def to_trade(r):
     }
 
 
+def is_roundup(benefit_type):
+    """Trade Republic "Round up" / spare-change benefit (vs saveback)."""
+    return "SPARE" in benefit_type or "ROUND" in benefit_type
+
+
 def build_etf_journal(rows):
-    """Ordered ETF journal entries (Buy / Saveback / Sell)."""
+    """Ordered ETF journal entries (Buy / Saveback / Sell).
+
+    A benefit credit (saveback or round-up: any BENEFITS_* type) reinvested by a
+    buy of the same amount tags that buy as a "Saveback" (matching by amount +
+    closest date). Matching on any BENEFITS_* is safe -- a credit with no
+    reinvesting buy is simply ignored -- and future-proofs round-up handling.
+    """
     fund = [r for r in rows if is_trade(r) and r["asset_class"] == "FUND"]
     buys = [r for r in fund if direction(r) == "BUY"]
     sells = [r for r in fund if direction(r) == "SELL"]
-    savebacks = [r for r in rows if r["type"] == "BENEFITS_SAVEBACK"]
+    benefits = [r for r in rows if r["type"].startswith("BENEFITS_")]
 
-    # Match each saveback credit to the buy of the same amount (closest date).
     used = [False] * len(buys)
-    saveback_idx = set()
-    for sb in savebacks:
-        m = round(abs(num(sb["amount"]) or 0), 2)
-        d = datetime.strptime(sb["date"], "%Y-%m-%d")
+    benefit_of = {}                                # buy index -> benefit credit type
+    for cr in benefits:
+        m = round(abs(num(cr["amount"]) or 0), 2)
+        d = datetime.strptime(cr["date"], "%Y-%m-%d")
         best, bkey = None, None
         for i, b in enumerate(buys):
             if used[i] or round(abs(num(b["amount"]) or 0), 2) != m:
@@ -591,19 +603,22 @@ def build_etf_journal(rows):
                 bkey, best = key, i
         if best is not None:
             used[best] = True
-            saveback_idx.add(best)
+            benefit_of[best] = cr["type"]
 
     entries = []
     for i, b in enumerate(buys):
-        sb = i in saveback_idx
+        benefit = i in benefit_of
+        comment = None
+        if benefit:
+            comment = S["roundup_card"] if is_roundup(benefit_of[i]) else S["saveback_card"]
         entries.append(dict(
             date=datetime.strptime(b["date"], "%Y-%m-%d"),
-            kind="saveback" if sb else "buy",
-            type=S["saveback"] if sb else S["buy"],
+            kind="saveback" if benefit else "buy",
+            type=S["saveback"] if benefit else S["buy"],
             name=display_name(b), price=num(b["price"]), shares=num(b["shares"]),
             total=round(abs(num(b["amount"]) or 0), 2),
             fee=round(abs(num(b["fee"]) or 0), 2),
-            comment=S["saveback_card"] if sb else None))
+            comment=comment))
     for v in sells:
         entries.append(dict(
             date=datetime.strptime(v["date"], "%Y-%m-%d"), kind="sell", type=S["sell"],
@@ -1489,20 +1504,8 @@ def fetch_all_prices(isins, now):
 #  Assembly / CLI
 # ==========================================================================
 
-def main():
-    p = argparse.ArgumentParser(description=TXT["en"]["cli_desc"])
-    p.add_argument("--fi", default="transactions.csv", help="Trade Republic CSV export")
-    p.add_argument("--fo", default="TradeRepublicBoard.xlsx", help="Output workbook")
-    lang = p.add_mutually_exclusive_group()
-    lang.add_argument("--en", action="store_const", dest="lang", const="en",
-                      help="Generate the workbook in English (default)")
-    lang.add_argument("--fr", action="store_const", dest="lang", const="fr",
-                      help="Generate the workbook in French")
-    p.add_argument("--auto-prices", action="store_true",
-                   help="Fetch current prices by ISIN (Deutsche Börse / Yahoo, needs internet)")
-    p.set_defaults(lang="en")
-    args = p.parse_args()
-
+def generate(args):
+    """Read the CSV in args.fi and write the workbook to args.fo."""
     select_language(args.lang)
 
     if not os.path.exists(args.fi):
@@ -1569,6 +1572,36 @@ def main():
         print(S["cli_tax"] % (yr, d["interest"], d["gain"], d["contrib"]))
     if os.path.exists(args.fo + ".bak"):
         print(S["cli_backup"] % os.path.basename(args.fo))
+
+
+def main():
+    p = argparse.ArgumentParser(description=TXT["en"]["cli_desc"])
+    p.add_argument("--fi", default="transactions.csv", help="Trade Republic CSV export")
+    p.add_argument("--fo", default="TradeRepublicBoard.xlsx", help="Output workbook")
+    lang = p.add_mutually_exclusive_group()
+    lang.add_argument("--en", action="store_const", dest="lang", const="en",
+                      help="Generate the workbook in English (default)")
+    lang.add_argument("--fr", action="store_const", dest="lang", const="fr",
+                      help="Generate the workbook in French")
+    p.add_argument("--auto-prices", action="store_true",
+                   help="Fetch current prices by ISIN (Deutsche Börse / Yahoo, needs internet)")
+    p.add_argument("--watch", metavar="DIR",
+                   help="One-shot watch: if DIR contains the export file, process it "
+                        "and delete it on success (meant for cron / Task Scheduler)")
+    p.add_argument("--watch-name", default="trade-republic-export.csv",
+                   help="Expected export filename inside --watch DIR")
+    p.set_defaults(lang="en")
+    args = p.parse_args()
+
+    if args.watch:
+        src = os.path.join(args.watch, args.watch_name)
+        if not os.path.exists(src):
+            return                                 # nothing to do, exit quietly
+        args.fi = src
+        generate(args)                             # raises on failure -> file kept
+        os.remove(src)                             # delete only after a successful run
+    else:
+        generate(args)
 
 
 if __name__ == "__main__":
