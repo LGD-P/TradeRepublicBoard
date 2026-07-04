@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "traderepublicboard"
+version = "0.1.0"
+description = "Turn a Trade Republic CSV export into a polished Excel portfolio board (DCA, saveback, tax, mark-to-market history)."
+authors = ["LGD-P"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/LGD-P/TradeRepublicBoard"
+repository = "https://github.com/LGD-P/TradeRepublicBoard"
+keywords = ["trade-republic", "portfolio", "etf", "excel", "dca", "saveback"]
+# Single-module project: keep it light and easy to maintain.
+packages = [{ include = "tr_board.py" }]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+openpyxl = "^3.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+
+[tool.poetry.scripts]
+tr-board = "tr_board:main"
+
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"

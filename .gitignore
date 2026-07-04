@@ -1,0 +1,51 @@
+# ==========================================================================
+#  NEVER commit personal / sensitive data. Deny-by-default for real exports.
+# ==========================================================================
+
+# Claude / assistant working files
+CLAUDE.md
+.claude/
+
+# Real Trade Republic exports and generated workbooks (personal data)
+Exportation*.csv
+transactions*.csv
+Suivi_Trade_Republic.xlsx*
+Suivi-Trade-Rep-*.xlsx
+sortie.csv
+*.bak
+
+# One-off / legacy scripts kept locally only
+filter_fund.py
+generer_suivi.py
+
+# Any CSV/XLSX at the repo root is treated as personal by default…
+/*.csv
+/*.xlsx
+# …but the curated, fake sample data is always allowed:
+!sample_data/**
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+.coverage
+htmlcov/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# LibreOffice lock files (contain user/host)
+.~lock.*#
+~$*
