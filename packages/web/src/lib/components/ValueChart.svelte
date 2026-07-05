@@ -17,7 +17,7 @@
   function colors() {
     const s = getComputedStyle(document.documentElement);
     const c = (name: string) => s.getPropertyValue(name).trim();
-    return { accent: c("--accent"), muted: c("--muted"), grid: c("--grid") };
+    return { accent: c("--accent"), muted: c("--muted"), grid: c("--grid"), loss: c("--loss") };
   }
 
   function toData(pts: SeriesPoint[], key: "value" | "cost") {
@@ -37,7 +37,7 @@
       chart = lc.createChart(el, {
         height: 300,
         layout: { background: { color: "transparent" }, textColor: col.muted,
-          fontFamily: getComputedStyle(document.body).fontFamily },
+          fontFamily: getComputedStyle(document.body).fontFamily, attributionLogo: false },
         rightPriceScale: { borderVisible: false },
         timeScale: { borderVisible: false, fixLeftEdge: true, fixRightEdge: true },
         grid: { horzLines: { color: col.grid }, vertLines: { visible: false } },
@@ -49,7 +49,7 @@
         handleScale: false,
       });
       costSeries = chart.addLineSeries({
-        color: col.muted, lineWidth: 1, lineStyle: 2,
+        color: col.loss, lineWidth: 1, lineStyle: 2,
         priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
       });
       valueSeries = chart.addAreaSeries({
@@ -87,7 +87,7 @@
       crosshair: { vertLine: { color: col.muted } },
     });
     valueSeries?.applyOptions({ lineColor: col.accent, topColor: col.accent + "22", bottomColor: col.accent + "05" });
-    costSeries?.applyOptions({ color: col.muted });
+    costSeries?.applyOptions({ color: col.loss });
   });
 </script>
 

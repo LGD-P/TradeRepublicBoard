@@ -194,6 +194,12 @@ pip install openpyxl pytest
 python -m pytest -q
 ```
 
+## Credits
+
+Time-series charts are rendered with
+[TradingView Lightweight Charts™](https://www.tradingview.com/lightweight-charts/)
+(Apache-2.0).
+
 ## License
 
 [MIT](LICENSE) © LGD-P

@@ -9,6 +9,16 @@
 
   let theme = $state("light");
   let dragging = $state(false);
+  let range = $state("Max");
+
+  // Our value curve is monthly (mark-to-market at transaction prices), so ranges
+  // map to a number of months. True daily 1D/1W needs a historical price series.
+  function filterSeries<T>(series: T[], r: string): T[] {
+    if (r === "Max") return series;
+    const months = r === "1M" ? 1 : r === "6M" ? 6 : 12;
+    const n = Math.min(series.length, months + 1);
+    return series.slice(series.length - n);
+  }
 
   onMount(() => {
     theme = localStorage.getItem("theme") ?? "light";
@@ -125,13 +135,18 @@
                 <h2 class="card-title">Value over time</h2>
                 <p class="card-sub">Portfolio value vs invested cost — the gap is your unrealised gain.</p>
               </div>
-              <div class="legend">
-                <span class="lg"><i class="sw" style="background:var(--accent)"></i>Value</span>
-                <span class="lg"><i class="sw" style="background:var(--muted)"></i>Cost</span>
+              <div class="seg range-seg">
+                {#each ["1M", "6M", "1Y", "Max"] as r}
+                  <button class="seg-btn {range === r ? 'is-on' : ''}" type="button" onclick={() => (range = r)}>{r}</button>
+                {/each}
               </div>
             </div>
-            {#key theme}
-              <ValueChart series={v.series} {theme} />
+            <div class="legend chart-legend">
+              <span class="lg"><i class="sw" style="background:var(--accent)"></i>Value</span>
+              <span class="lg"><i class="sw" style="background:var(--loss)"></i>Cost</span>
+            </div>
+            {#key theme + "|" + range}
+              <ValueChart series={filterSeries(v.series, range)} {theme} />
             {/key}
           </div>
 

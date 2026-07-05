@@ -93,6 +93,8 @@ a { color: inherit; }
 .row-8-4 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
 .row-6-6 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .legend { display: flex; gap: 16px; font-size: 12px; color: var(--text-2); }
+.chart-legend { margin: -2px 0 10px; }
+.range-seg .seg-btn { padding: 5px 10px; }
 .lg { display: inline-flex; align-items: center; gap: 6px; }
 .sw { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
 
