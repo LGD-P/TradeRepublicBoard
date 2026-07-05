@@ -31,7 +31,9 @@
   let dragging = $state(false);
 
   onMount(() => {
-    applyTheme(get(theme)); // sync the <html data-theme> attribute with the stored value
+    // ?theme=dark|light lets you deep-link a specific theme (also used for docs).
+    const urlTheme = new URLSearchParams(window.location.search).get("theme");
+    applyTheme(urlTheme === "dark" || urlTheme === "light" ? urlTheme : get(theme));
     if (!$view && !restore()) loadSample(); // restore imported data across refreshes
   });
 

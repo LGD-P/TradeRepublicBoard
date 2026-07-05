@@ -1,193 +1,106 @@
 # TradeRepublicBoard
 
-Turn a **Trade Republic** CSV export into a polished, self-contained **Excel
-portfolio board** — dollar-cost averaging (DCA), savebacks, single-stock picking,
-a tax summary, and a month-by-month *mark-to-market* history of your portfolio.
+Turn a **Trade Republic** CSV export into a private **portfolio dashboard** —
+dollar-cost averaging (DCA), savebacks, single-stock picking, per-asset
+drilldowns, a tax summary, and a month-by-month *mark-to-market* history.
 
-One command in, one clean workbook out. Available in **English** or **French**.
+Runs **100 % in your browser** — nothing is uploaded, no account, no server.
+A companion **command-line tool** builds the same view as a polished Excel
+workbook. **English or French · light / dark.**
 
 > **Unofficial project.** Not affiliated with, endorsed by, or connected to
 > Trade Republic. It only reads a CSV you export yourself. Personal tracking
 > tool, **not** investment or tax advice.
 
-![Dashboard](assets/02-dashboard.png)
+![Overview](assets/web/overview.png)
 
 ---
 
-## Highlights
+## Web dashboard — run it with Docker
 
-- **Rebuilt from scratch every run** — no template file to carry around, share the
-  single script.
-- **Understands savebacks** — a `BENEFITS_SAVEBACK` credit reinvested by a buy of
-  the same amount is tagged as a *Saveback* (salmon rows).
-- **Stock picking with realised P/L** — single stocks get their own sheet with
-  **weighted-average cost** and realised gains.
-- **Mark-to-market history** — the Dashboard traces your portfolio value over time,
-  each month priced at *its own transactions* (the real TR execution prices); the
-  last point uses the current market price.
-- **Tax sheet** — cash interest and realised gains per year, for your filing.
-- **Green gains / red losses** everywhere, interactive per-year drilldown, charts.
-- **Optional auto prices** by ISIN (Deutsche Börse / Xetra, Yahoo fallback) — or
-  just type them in the yellow cells.
-- **Your prices are preserved** across monthly refreshes (keyed by ISIN).
-- **Bilingual output** — `--en` (default) or `--fr`.
-
-| Investments journal | By ETF (interactive) |
-|---|---|
-| ![Investments](assets/03-investments.png) | ![By ETF](assets/05-by-etf.png) |
-
----
-
-## Install
-
-The only runtime dependency is [`openpyxl`](https://pypi.org/project/openpyxl/).
-Requires **Python 3.9+**.
-
-### With pip
-
-```bash
-git clone https://github.com/LGD-P/TradeRepublicBoard.git
-cd TradeRepublicBoard
-python -m pip install -r requirements.txt
-python tr_board.py --fi transactions.csv --fo board.xlsx --en
-```
-
-### With Poetry
-
-```bash
-git clone https://github.com/LGD-P/TradeRepublicBoard.git
-cd TradeRepublicBoard
-poetry install
-poetry run tr-board --fi transactions.csv --fo board.xlsx --en
-```
-
----
-
-## Usage
-
-1. In the Trade Republic app, export your transactions as CSV.
-2. Run the script:
-
-   ```bash
-   python tr_board.py --fi transactions.csv --fo board.xlsx
-   ```
-
-3. Open the workbook and fill the **Current price** (yellow) cells — or let the
-   script fetch them:
-
-   ```bash
-   python tr_board.py --fi transactions.csv --fo board.xlsx --auto-prices
-   ```
-
-Re-run it every month on a fresh export: the journal is rebuilt and your prices
-are preserved.
-
-### Options
-
-| Option | What it does | Default |
-|---|---|---|
-| `--fi` | Input CSV (Trade Republic export) | `transactions.csv` |
-| `--fo` | Output workbook | `TradeRepublicBoard.xlsx` |
-| `--en` / `--fr` | Workbook language | `--en` |
-| `--auto-prices` | Fetch current prices by ISIN (needs internet) | off |
-
-Try it right now on the bundled fake data:
-
-```bash
-python tr_board.py --fi sample_data/transactions_sample.csv --fo demo.xlsx --en
-```
-
-### Automate it (optional watcher)
-
-`--watch DIR` is a one-shot: if `DIR` contains the export file it processes it and
-**deletes it on success**, otherwise it exits quietly. Point your OS scheduler at it.
-
-```bash
-python tr_board.py --watch inbox --fo out/board.xlsx --auto-prices
-```
-
-- **Linux (cron, hourly):**
-  `0 * * * * cd /path/to/repo && python3 tr_board.py --watch inbox --fo out/board.xlsx --auto-prices`
-- **Windows (Task Scheduler):** register an hourly task running
-  `python C:\path\to\repo\tr_board.py --watch inbox --fo out\board.xlsx --auto-prices`
-
-The expected filename is `trade-republic-export.csv` (override with `--watch-name`).
-
----
-
-## Web dashboard
-
-A clean, **fully local** web dashboard (SvelteKit) reads the same CSV **in your
-browser** — nothing is uploaded — and shows KPIs, a portfolio value-over-time
-chart, allocation, a per-ETF/per-stock breakdown, performance, and a tax summary.
-Click any holding to drill into that line year by year and month by month.
-Bilingual (EN/FR), light/dark.
-
-Everything computes on your device: set current prices by hand in **Settings**
-(no price feed needed), **print / save as PDF**, or **export an `.xlsx`** workbook
-— closing the loop with the Python tool. The PDF and the workbook are built
-in-browser, with no network and no third-party library.
-
-Run it with Docker (no Node needed) — served by a small, non-root nginx:
+The main app is a **fully local** SvelteKit dashboard. It reads your Trade
+Republic CSV **in your browser**; the data never leaves your device. One command
+brings it up (a small, **non-root** nginx serves a static build — no Node needed):
 
 ```bash
 docker compose up --build
 # then open http://localhost:8080
 ```
 
-Or for development (needs Node 22+):
+That starts the app and, optionally, the price proxy (see *Online prices* below).
+For development instead: `cd packages/web && npm install && npm run dev` (Node 22+).
 
-```bash
-cd packages/web
-npm install
-npm run dev
-```
+### What you get
 
-The dashboard is a static site (no server processing your data): it can be hosted
-on any static host later. It makes **no network request** unless you opt in to
-price refresh.
+- **Overview** — portfolio value, KPIs (contributions, saveback, fees, market
+  performance, saveback worth), a value-vs-cost chart, an allocation donut,
+  movers and a holdings table.
+- **Click any holding → its own page** — a value-over-time chart for *that* line
+  and its investment history, year by year and month by month.
+- **Per-year monthly recap** with **expandable rows**: open a month to see each
+  instrument (amounts and gains), the total kept end-of-line.
+- **Print / Save as PDF** and **Export `.xlsx`** — the workbook mirrors the CLI
+  (styling and charts included), built entirely in-browser with **no dependency
+  and no network**.
+- **Prices your way** — type current prices by hand in **Settings**, or fetch
+  them online (opt-in, see below). Gains are green, losses red, everywhere.
 
-**Online prices (opt-in).** A tiny [price proxy](packages/price-proxy) fetches
-current prices **by ISIN** (Deutsche Börse / Xetra, Yahoo fallback) — only the
-ISIN ever leaves your browser, never your holdings. It runs as a local Node
-server (`docker compose up` starts it alongside the app) or a Cloudflare Worker.
-Set its URL in **Settings → Online prices**, then hit **Refresh**. The strict CSP
-limits `connect-src` to that proxy and nothing else.
-
-## The sheets
-
-| Sheet | Content |
+| Per-asset drilldown | Settings (prices, privacy) |
 |---|---|
-| **Dashboard** | KPIs, performance, portfolio value over time, charts. |
-| **Investments** | Live prices (ISIN auto-filled) + the ETF journal (Buy / Saveback / Sell). |
-| **By ETF** | Performance per line, global charts, and an interactive **per-year** drilldown (dropdown) with charts. |
-| **Yearly** | Contributions and gains per year. |
-| **Tax** | Cash interest and realised gains per year, for your filing. |
-| **Stock Picking-IPO** | Single stocks: transactions, weighted-average cost, realised & unrealised P/L. |
-| **Read me** | A short in-workbook guide. |
+| ![Asset drilldown](assets/web/asset.png) | ![Settings](assets/web/settings.png) |
+
+### Online prices (opt-in — the only networked feature)
+
+A tiny [price proxy](packages/price-proxy) fetches current prices **by ISIN**
+(Deutsche Börse / Xetra, Yahoo fallback) — **only the ISIN ever leaves your
+browser, never your holdings**. It runs as a local Node server (`docker compose
+up` starts it alongside the app) or a Cloudflare Worker. Set its URL in
+**Settings → Online prices**, then hit **Refresh**. The strict CSP limits
+`connect-src` to that proxy and nothing else. Leave it empty to stay **fully
+offline**.
 
 ---
 
-## How it works
+## Command-line tool — Excel workbook
 
-- **ETF portfolio** = transactions with `asset_class = FUND`. **Single stocks** =
-  other `TRADING` transactions, routed to the stock sheet.
-- **Ignored**: card payments, transfers and marketing. **Cash interest** is kept on
-  the Tax sheet only (it is taxable).
-- **Instrument names** come straight from the CSV (`symbol` = ISIN, `name` = label)
-  — nothing to maintain; a new ETF or stock shows up on its own.
-- **Realised gains** use the **weighted-average cost** method.
-- **Portfolio value over time** is *indicative*: it uses transaction-date prices
-  (the only prices present in the export), not end-of-month quotes.
+Prefer a file you can keep? `tr_board.py` turns the same CSV into a styled,
+self-contained **Excel workbook** (Dashboard, By-ETF with charts, Yearly, Tax,
+Stock Picking, Read me). Its only runtime dependency is
+[`openpyxl`](https://pypi.org/project/openpyxl/); needs **Python 3.9+**.
 
-### Price sources (`--auto-prices`)
+```bash
+python -m pip install -r requirements.txt
+python tr_board.py --fi transactions.csv --fo board.xlsx --en   # or --fr
+```
 
-Queried by ISIN, in order, with a silent fallback (a missing price just stays
-empty, to fill by hand):
+Re-run it every month on a fresh export: the journal is rebuilt and your prices
+are **preserved by ISIN**. Add `--auto-prices` to fetch quotes by ISIN, or
+`--watch DIR` for a one-shot the OS scheduler can call (it processes an export
+dropped in `DIR` and deletes it on success).
 
-1. **Deutsche Börse / Xetra** — European reference venue, EUR quotes, closest to
-   Trade Republic;
-2. **Yahoo Finance** — international fallback if the ISIN is not listed on Xetra.
+| Option | What it does | Default |
+|---|---|---|
+| `--fi` / `--fo` | Input CSV / output workbook | `transactions.csv` / `TradeRepublicBoard.xlsx` |
+| `--en` / `--fr` | Workbook language | `--en` |
+| `--auto-prices` | Fetch current prices by ISIN (needs internet) | off |
+
+Try it on the bundled fake data:
+
+```bash
+python tr_board.py --fi sample_data/transactions_sample.csv --fo demo.xlsx --en
+```
+
+![By-ETF workbook sheet](assets/05-by-etf.png)
+
+---
+
+## Coming soon — Cloudflare Pages
+
+The dashboard is a **static site** and the proxy is already **Worker-ready**
+(`wrangler.toml` included). Publishing to **Cloudflare Pages** (app) + **Workers**
+(proxy) — one-click, no server to run — is the next step: deploy the Worker, then
+add its origin to `connect-src` in `packages/web/svelte.config.js`. Until then,
+everything runs locally with Docker.
 
 ---
 
@@ -195,52 +108,51 @@ empty, to fill by hand):
 
 Security and privacy are first-class goals here — see **[SECURITY.md](SECURITY.md)**.
 
-- The tool runs **entirely on your machine**. Your CSV never leaves it.
-- The only outbound requests happen with `--auto-prices`, and only send an **ISIN**
-  (a public identifier) to the price sources above — never your holdings or amounts.
-- No CDN, no analytics, no telemetry.
-- **OWASP-aware**: the CSV is treated as **untrusted input** (size cap, UTF-8 check,
-  required-column check, row/field caps, and **spreadsheet formula-injection**
-  neutralisation `= + - @`), and **no useless data is retained** — processed in
-  memory, discarded after use.
-- Correctness is **test-gated (TDD)**: the Python and TypeScript cores must produce
-  an identical model on the shared fixtures (CI).
+- Everything runs **on your machine**. Your CSV is read in the browser (or by the
+  CLI locally) and **never leaves your device**.
+- The **only** outbound request is the opt-in price refresh, which sends a single
+  **ISIN** (a public identifier) to the proxy — never your holdings or amounts.
+  The proxy keeps no state and logs nothing.
+- **No CDN, no analytics, no telemetry.** Fonts are self-hosted; a **strict CSP**
+  (`default-src 'self'`) limits `connect-src` to the price proxy alone.
+- **OWASP-aware**: the CSV is treated as **untrusted input** (size cap, UTF-8
+  check, required-column check, row/field caps, and **spreadsheet
+  formula-injection** neutralisation of `= + - @`); **no useless data is
+  retained** — processed in memory, discarded after use.
+- **Test-gated (TDD)**: the Python and TypeScript cores must produce an identical
+  model on shared golden [`fixtures/`](fixtures) (CI), so the two can never drift.
 
 ---
 
-## Roadmap
+## How it works
 
-- ✅ directory watcher that ingests a new export and deletes it once processed
-  (`--watch`);
-- ✅ hardened, validated CSV ingestion (formula-injection safe);
-- Dockerisation;
-- a proper web dashboard (with monthly / yearly PDF & CSV export);
-- a TDD test suite and CI (`tests/` already started).
+- **ETF portfolio** = transactions with `asset_class = FUND`. **Single stocks** =
+  other `TRADING` transactions, routed to their own view.
+- **Savebacks** — a `BENEFITS_SAVEBACK` credit reinvested by a buy of the same
+  amount is tagged as a *Saveback* (the "free" shares).
+- **Realised gains** use the **weighted-average cost** method.
+- **Portfolio value over time** is *indicative*: it prices each month at *its own
+  transactions* (the only prices in the export); the last point uses the current
+  price. Instrument names come straight from the CSV — nothing to maintain.
+- **Price sources** (`--auto-prices` / the proxy), by ISIN, with a silent
+  fallback: **Deutsche Börse / Xetra** first (EUR reference venue), then
+  **Yahoo Finance**.
 
----
-
-## Contributing
-
-The portfolio logic is a small, pure data layer with a **language-neutral model
-contract** ([`docs/MODEL.md`](docs/MODEL.md)). `tr_board.py --emit-model --fi <csv>`
-prints that model as JSON. Golden fixtures in [`fixtures/`](fixtures) freeze the
-expected model for a set of cases (incl. edge cases); CI checks the core against
-them. A future TypeScript core (for the web app) will run against the **same**
-fixtures, so the two implementations can never drift.
+The portfolio logic is a small, pure data layer with a language-neutral model
+contract ([`docs/MODEL.md`](docs/MODEL.md)); `tr_board.py --emit-model --fi <csv>`
+prints it as JSON.
 
 ```bash
-pip install openpyxl pytest
-python -m pytest -q
+pip install openpyxl pytest && python -m pytest -q
 ```
 
 ## Credits
 
-Time-series charts are rendered with
+Time-series charts use
 [TradingView Lightweight Charts™](https://www.tradingview.com/lightweight-charts/)
-(Apache-2.0).
-
-The UI is set in [Inter](https://rsms.me/inter/) by Rasmus Andersson, self-hosted
-(latin subset, no CDN) under the [SIL Open Font License 1.1](packages/web/static/fonts/Inter-OFL.txt).
+(Apache-2.0). The UI is set in [Inter](https://rsms.me/inter/) by Rasmus
+Andersson, self-hosted (latin subset, no CDN) under the
+[SIL Open Font License 1.1](packages/web/static/fonts/Inter-OFL.txt).
 
 ## License
 
