@@ -1,8 +1,10 @@
 <script lang="ts">
   import Donut from "$lib/components/Donut.svelte";
-  import { eur, eurSigned, pct, shares, toneClass } from "$lib/format";
+  import { eur, eurSigned, monthLabel, pct, shares, toneClass } from "$lib/format";
   import { t } from "$lib/i18n";
   import { view } from "$lib/state";
+
+  let selectedYear = $state<number | null>(null);
 </script>
 
 {#if $view}
@@ -82,6 +84,76 @@
                 <td class="n num">{eur(s.value)}</td>
                 <td class="n num {toneClass(s.unrealised)}">{eurSigned(s.unrealised)}<span class="cell-pct">{pct(s.unrealisedPct)}</span></td>
                 <td class="n num {toneClass(s.realised)}">{eurSigned(s.realised)}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  {/if}
+
+  <!-- Per-year detail (like "By ETF" > per-year in the workbook) -->
+  {#if v.years.length}
+    {@const yr = selectedYear ?? v.years[v.years.length - 1]}
+    {@const detail = v.byYear[yr]}
+    <section class="card">
+      <div class="card-head">
+        <div><h2 class="card-title">{$t("sec_byyear")}</h2></div>
+        <div class="seg range-seg">
+          {#each v.years as y}
+            <button class="seg-btn {yr === y ? 'is-on' : ''}" type="button" onclick={() => (selectedYear = y)}>{y}</button>
+          {/each}
+        </div>
+      </div>
+
+      <h3 class="sub-title">{$t("by_line")}</h3>
+      <div class="table-scroll">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>{$t("th_name")}</th>
+              <th class="n">{$t("th_sharesacq")}</th>
+              <th class="n">{$t("th_cost")}</th>
+              <th class="n">{$t("th_valuetoday")}</th>
+              <th class="n">{$t("th_gainloss")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each detail.etfs as e}
+              <tr>
+                <td>{e.name}</td>
+                <td class="n num">{shares(e.shares)}</td>
+                <td class="n num">{eur(e.cost)}</td>
+                <td class="n num">{eur(e.value)}</td>
+                <td class="n num {toneClass(e.gain)}">{eurSigned(e.gain)}<span class="cell-pct">{pct(e.gainPct)}</span></td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub-title">{$t("perf_monthly")}</h3>
+      <div class="table-scroll">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>{$t("th_month")}</th>
+              <th class="n">{$t("th_buys")}</th>
+              <th class="n">{$t("th_saveback")}</th>
+              <th class="n">{$t("th_cost")}</th>
+              <th class="n">{$t("th_valuetoday")}</th>
+              <th class="n">{$t("th_gain")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each detail.monthly as m}
+              <tr>
+                <td>{monthLabel(yr, m.month)}</td>
+                <td class="n num">{eur(m.buys)}</td>
+                <td class="n num">{eur(m.saveback)}</td>
+                <td class="n num">{eur(m.cost)}</td>
+                <td class="n num">{eur(m.value)}</td>
+                <td class="n num {toneClass(m.gain)}">{eurSigned(m.gain)}</td>
               </tr>
             {/each}
           </tbody>

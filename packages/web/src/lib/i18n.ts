@@ -28,6 +28,8 @@ const dict = {
     th_gainloss: "Gain/Loss", total: "Total",
     th_buys: "Buys", th_saveback: "Saveback", th_totalcost: "Total cost", th_price: "Price",
     sec_etfs: "ETFs",
+    sec_byyear: "Per-year detail", by_line: "By ETF / stock",
+    th_sharesacq: "Shares acquired", th_valuetoday: "Value today",
     // performance page
     perf_break: "Performance breakdown", perf_basis: "Basis", perf_measures: "What it measures",
     perf_tr: "Market (TR method)", perf_tr_m: "Return on all invested money",
@@ -73,6 +75,8 @@ const dict = {
     th_gainloss: "+/- value", total: "Total",
     th_buys: "Achats", th_saveback: "Saveback", th_totalcost: "Coût total", th_price: "Cours",
     sec_etfs: "ETF",
+    sec_byyear: "Détail par année", by_line: "Par ETF / action",
+    th_sharesacq: "Parts acquises", th_valuetoday: "Valeur auj.",
     perf_break: "Décomposition de la performance", perf_basis: "Base", perf_measures: "Ce que ça mesure",
     perf_tr: "Marché (méthode TR)", perf_tr_m: "Rendement de tout l'argent investi",
     perf_sav: "Apport du saveback", perf_sav_m: "Valeur actuelle des parts « offertes »",
