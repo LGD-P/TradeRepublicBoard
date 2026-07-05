@@ -33,7 +33,14 @@
     if (f) handleFile(f);
   }
 
-  const titleKey = $derived(NAV.find((n) => n.href === $page.url.pathname)?.key ?? "nav_overview");
+  // Match the current section, including sub-routes like /portfolio/<isin>.
+  const activeHref = $derived(
+    [...NAV].filter((n) => n.href !== "/")
+      .sort((a, b) => b.href.length - a.href.length)
+      .find((n) => $page.url.pathname === n.href || $page.url.pathname.startsWith(n.href + "/"))?.href
+      ?? "/",
+  );
+  const titleKey = $derived(NAV.find((n) => n.href === activeHref)?.key ?? "nav_overview");
 </script>
 
 {#if $view}
@@ -42,7 +49,7 @@
       <div class="brand"><span class="brand-mark">◆</span><span class="brand-name">Board</span></div>
       <nav class="nav">
         {#each NAV as n}
-          <a class="nav-item {$page.url.pathname === n.href ? 'is-active' : ''}" href={n.href}>
+          <a class="nav-item {activeHref === n.href ? 'is-active' : ''}" href={n.href}>
             <span class="ni-ico">{n.ico}</span>{$t(n.key)}
           </a>
         {/each}

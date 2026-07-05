@@ -53,6 +53,17 @@ export interface YearEtfRow {
   gainPct: number;
 }
 
+export interface YearMonthInstr {
+  isin: string;
+  name: string;
+  buys: number;
+  saveback: number;
+  cost: number;
+  value: number;
+  gain: number;
+  gainPct: number;
+}
+
 export interface YearMonthRow {
   month: number;
   buys: number;
@@ -60,11 +71,47 @@ export interface YearMonthRow {
   cost: number;
   value: number;
   gain: number;
+  instruments: YearMonthInstr[];
 }
 
 export interface YearDetail {
   etfs: YearEtfRow[];
   monthly: YearMonthRow[];
+}
+
+export interface AssetMonthRow {
+  month: number;
+  buys: number;
+  saveback: number;
+  cost: number;
+  value: number;
+  gain: number;
+  gainPct: number;
+}
+
+export interface AssetYearRow {
+  year: number;
+  buys: number;
+  saveback: number;
+  cost: number;
+  value: number;
+  gain: number;
+  gainPct: number;
+  months: AssetMonthRow[];
+}
+
+export interface AssetDetail {
+  isin: string;
+  name: string;
+  type: "etf" | "stock";
+  shares: number;
+  invested: number;
+  value: number;
+  gain: number;
+  gainPct: number;
+  avgCost: number;
+  series: SeriesPoint[];
+  years: AssetYearRow[];
 }
 
 export interface View {
@@ -88,6 +135,7 @@ export interface View {
   pricesAreFallback: boolean;
   years: number[];
   byYear: Record<number, YearDetail>;
+  byAsset: Record<string, AssetDetail>;
 }
 
 /** Last transaction price per ISIN (ETF journal + stock trades). */
@@ -170,31 +218,40 @@ export function computeView(model: Model, prices?: Record<string, number>): View
 
   // --- per-year drilldown (like the "By ETF" sheet): ETF journal + stock trades
   //     unified into movements, grouped by year, with a monthly recap. ---
-  interface Mv { year: number; month: number; isin: string; name: string; kind: string; shares: number; total: number; }
+  interface Mv { year: number; month: number; isin: string; name: string; kind: string; shares: number; total: number; price: number; }
   const mvs: Mv[] = [];
   for (const e of model.etf_journal)
-    mvs.push({ year: +e.date.slice(0, 4), month: +e.date.slice(5, 7), isin: e.isin, name: e.name, kind: e.kind, shares: n(e.shares), total: n(e.total) });
+    mvs.push({ year: +e.date.slice(0, 4), month: +e.date.slice(5, 7), isin: e.isin, name: e.name, kind: e.kind, shares: n(e.shares), total: n(e.total), price: n(e.price) });
   for (const tr of model.stock_trades) {
     const sell = tr.dir === "SELL";
     mvs.push({ year: +tr.date.slice(0, 4), month: +tr.date.slice(5, 7), isin: tr.isin, name: tr.name,
-               kind: sell ? "sell" : "buy", shares: sell ? -n(tr.qty) : n(tr.qty), total: sell ? -n(tr.amount) : n(tr.amount) });
+               kind: sell ? "sell" : "buy", shares: sell ? -n(tr.qty) : n(tr.qty), total: sell ? -n(tr.amount) : n(tr.amount), price: n(tr.price) });
   }
+  // Contribution helper: buys & saveback are money in; sells are not a cost.
+  const contribOf = (m: Mv): number => (m.kind === "buy" || m.kind === "saveback") ? m.total : 0;
+
   const years = [...new Set(mvs.map((m) => m.year))].sort((a, b) => a - b);
   const byYear: Record<number, YearDetail> = {};
   for (const y of years) {
     const rows = new Map<string, YearEtfRow>();
-    const months = new Map<number, { buys: number; saveback: number; shares: Map<string, number> }>();
+    // Per month: aggregate buys/saveback + a per-instrument cohort breakdown.
+    interface MInstr { name: string; buys: number; saveback: number; shares: number; }
+    const months = new Map<number, { buys: number; saveback: number; instr: Map<string, MInstr> }>();
     for (const m of mvs) {
       if (m.year !== y) continue;
       let r = rows.get(m.isin);
       if (!r) rows.set(m.isin, (r = { isin: m.isin, name: m.name, shares: 0, cost: 0, value: 0, gain: 0, gainPct: 0 }));
       r.shares += m.shares;
-      if (m.kind === "buy" || m.kind === "saveback") r.cost += m.total;
+      r.cost += contribOf(m);
       let mm = months.get(m.month);
-      if (!mm) months.set(m.month, (mm = { buys: 0, saveback: 0, shares: new Map() }));
+      if (!mm) months.set(m.month, (mm = { buys: 0, saveback: 0, instr: new Map() }));
       if (m.kind === "buy") mm.buys += m.total;
       else if (m.kind === "saveback") mm.saveback += m.total;
-      mm.shares.set(m.isin, (mm.shares.get(m.isin) ?? 0) + m.shares);
+      let mi = mm.instr.get(m.isin);
+      if (!mi) mm.instr.set(m.isin, (mi = { name: m.name, buys: 0, saveback: 0, shares: 0 }));
+      if (m.kind === "buy") mi.buys += m.total;
+      else if (m.kind === "saveback") mi.saveback += m.total;
+      mi.shares += m.shares;
     }
     const yEtfs = [...rows.values()].map((r) => {
       r.value = r.shares * (px[r.isin] ?? 0);
@@ -203,18 +260,102 @@ export function computeView(model: Model, prices?: Record<string, number>): View
       return r;
     }).sort((a, b) => b.value - a.value);
     const monthly: YearMonthRow[] = [...months.entries()].sort((a, b) => a[0] - b[0]).map(([month, mm]) => {
-      let value = 0;
-      for (const [isin, sh] of mm.shares) value += sh * (px[isin] ?? 0);
+      const instruments: YearMonthInstr[] = [...mm.instr.entries()].map(([isin, mi]) => {
+        const cost = mi.buys + mi.saveback;
+        const value = mi.shares * (px[isin] ?? 0);
+        return { isin, name: mi.name, buys: mi.buys, saveback: mi.saveback, cost, value, gain: value - cost, gainPct: cost ? (value - cost) / cost : 0 };
+      }).sort((a, b) => b.cost - a.cost);
+      const value = instruments.reduce((s, i) => s + i.value, 0);
       const cost = mm.buys + mm.saveback;
-      return { month, buys: mm.buys, saveback: mm.saveback, cost, value, gain: value - cost };
+      return { month, buys: mm.buys, saveback: mm.saveback, cost, value, gain: value - cost, instruments };
     });
     byYear[y] = { etfs: yEtfs, monthly };
+  }
+
+  // --- per-asset drilldown: one instrument followed by year → month, plus a
+  //     monthly cost-vs-value series for its own chart (reuses the global one). ---
+  const etfByIsin = new Map(etfs.map((e) => [e.isin, e]));
+  const stockByIsin = new Map(stocks.map((s) => [s.isin, s]));
+  const assetIsins = [...new Set(mvs.map((m) => m.isin))];
+  const byAsset: Record<string, AssetDetail> = {};
+  for (const isin of assetIsins) {
+    const ms = mvs.filter((m) => m.isin === isin).sort((a, b) => a.year - b.year || a.month - b.month);
+    const name = ms[ms.length - 1]?.name ?? isin;
+    const isEtf = etfByIsin.has(isin);
+    const price = px[isin] ?? 0;
+
+    // Position header — reuse the exact figures from the portfolio tables.
+    let shares0 = 0, invested = 0, value = 0, gainv = 0, gainPct0 = 0, avgCost = 0;
+    if (isEtf) {
+      const e = etfByIsin.get(isin)!;
+      shares0 = e.shares; invested = e.costBasis; value = e.value; gainv = e.gain; gainPct0 = e.gainPct;
+      avgCost = shares0 ? invested / shares0 : 0;
+    } else {
+      const s = stockByIsin.get(isin);
+      shares0 = s?.shares ?? 0; invested = s?.remainingCost ?? 0; value = s?.value ?? 0;
+      gainv = s?.unrealised ?? 0; gainPct0 = s?.unrealisedPct ?? 0; avgCost = s?.avgCost ?? 0;
+    }
+
+    // Cohort year → month history (value = shares acquired that period × today's price).
+    const yMap = new Map<number, { buys: number; saveback: number; cost: number; shares: number; months: Map<number, { buys: number; saveback: number; cost: number; shares: number }> }>();
+    for (const m of ms) {
+      let yy = yMap.get(m.year);
+      if (!yy) yMap.set(m.year, (yy = { buys: 0, saveback: 0, cost: 0, shares: 0, months: new Map() }));
+      let mm = yy.months.get(m.month);
+      if (!mm) yy.months.set(m.month, (mm = { buys: 0, saveback: 0, cost: 0, shares: 0 }));
+      const c = contribOf(m);
+      if (m.kind === "buy") { yy.buys += m.total; mm.buys += m.total; }
+      else if (m.kind === "saveback") { yy.saveback += m.total; mm.saveback += m.total; }
+      yy.cost += c; mm.cost += c; yy.shares += m.shares; mm.shares += m.shares;
+    }
+    const yearRows: AssetYearRow[] = [...yMap.entries()].sort((a, b) => a[0] - b[0]).map(([year, yy]) => {
+      const yValue = yy.shares * price, yGain = yValue - yy.cost;
+      const monthsArr: AssetMonthRow[] = [...yy.months.entries()].sort((a, b) => a[0] - b[0]).map(([month, mm]) => {
+        const mValue = mm.shares * price, mGain = mValue - mm.cost;
+        return { month, buys: mm.buys, saveback: mm.saveback, cost: mm.cost, value: mValue, gain: mGain, gainPct: mm.cost ? mGain / mm.cost : 0 };
+      });
+      return { year, buys: yy.buys, saveback: yy.saveback, cost: yy.cost, value: yValue, gain: yGain, gainPct: yy.cost ? yGain / yy.cost : 0, months: monthsArr };
+    });
+
+    // Monthly cost-vs-value series along the global timeline: cumulative shares ×
+    // this asset's carry-forward price; the final point uses today's price.
+    const priceOf = new Map<string, number>();   // "YYYY-MM" -> last tx price that month
+    const deltaOf = new Map<string, { shares: number; cost: number }>();
+    let firstKey: string | null = null;
+    for (const m of ms) {
+      const key = `${m.year}-${String(m.month).padStart(2, "0")}`;
+      if (firstKey === null) firstKey = key;
+      if (m.price) priceOf.set(key, m.price);
+      const d = deltaOf.get(key) ?? { shares: 0, cost: 0 };
+      d.shares += m.shares; d.cost += contribOf(m);
+      deltaOf.set(key, d);
+    }
+    const timeline = model.monthly_value.map((mv) => `${mv.year}-${String(mv.month).padStart(2, "0")}`);
+    const lastKey = timeline[timeline.length - 1];
+    const aSeries: SeriesPoint[] = [];
+    let cumShares = 0, cumCost = 0, lastPrice = 0, started = false;
+    for (const key of timeline) {
+      if (key === firstKey) started = true;
+      const d = deltaOf.get(key);
+      if (d) { cumShares += d.shares; cumCost += d.cost; }
+      if (priceOf.has(key)) lastPrice = priceOf.get(key)!;
+      if (!started) continue;
+      const p = key === lastKey ? price : (lastPrice || price);
+      const [yStr, mStr] = key.split("-");
+      aSeries.push({ year: +yStr, month: +mStr, cost: cumCost, value: cumShares * p });
+    }
+
+    byAsset[isin] = {
+      isin, name, type: isEtf ? "etf" : "stock",
+      shares: shares0, invested, value, gain: gainv, gainPct: gainPct0, avgCost,
+      series: aSeries, years: yearRows,
+    };
   }
 
   return {
     kpis: { contributions, savebackReceived, totalCost, fees, currentValue,
             gain, gainPct, savebackContribution },
     etfs, allocation, series, stocks, realisedTotal,
-    tax: model.tax, prices: px, pricesAreFallback, years, byYear,
+    tax: model.tax, prices: px, pricesAreFallback, years, byYear, byAsset,
   };
 }

@@ -135,6 +135,38 @@ a { color: inherit; }
 .tbl-total td { font-weight: 650; border-bottom: 0; }
 .tbl-total tr:hover td { background: transparent; }
 
+/* clickable holding rows → asset detail */
+.row-link { cursor: pointer; }
+.row-link .go { color: var(--muted); font-weight: 600; margin-left: 6px; opacity: 0;
+  transition: opacity .12s, transform .12s; display: inline-block; }
+.row-link:hover .go, .row-link:focus-visible .go { opacity: 1; transform: translateX(2px); }
+.row-link:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* expandable month/year rows + per-instrument sub-rows */
+.row-exp { cursor: pointer; }
+.row-exp:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.chev { display: inline-block; width: 12px; margin-right: 7px; color: var(--muted); font-size: 10px;
+  transition: transform .15s; }
+.chev.is-open { transform: rotate(90deg); }
+.mono-instr { color: var(--muted); font-weight: 500; margin-left: 4px; }
+.sub-row td { background: var(--bg); color: var(--text-2); font-size: 12.5px; }
+.sub-row:hover td { background: var(--bg); }
+.sub-name { padding-left: 30px !important; position: relative; }
+.sub-name::before { content: "↳"; position: absolute; left: 14px; color: var(--muted); }
+
+/* asset detail */
+.back { display: inline-block; font-size: 13px; color: var(--accent); text-decoration: none; font-weight: 550; }
+.back:hover { text-decoration: underline; }
+.asset-head .ah-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.badge { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-soft);
+  padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; }
+.ah-isin { font-size: 12px; color: var(--muted); }
+.asset-kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 16px; }
+.ak { display: flex; flex-direction: column; gap: 5px; }
+.ak-l { font-size: 12px; color: var(--muted); font-weight: 550; }
+.ak-v { font-size: 19px; font-weight: 590; letter-spacing: -0.015em; }
+.ak-v small { font-size: 12.5px; font-weight: 500; }
+
 .mock-note { font-size: 11.5px; color: var(--muted); margin: 4px 2px 0; }
 .sub-title { font-size: 12.5px; font-weight: 600; color: var(--text-2); margin: 18px 0 10px; }
 .tax-notes { margin: 16px 0 0; padding-left: 18px; color: var(--text-2); font-size: 12.5px; }
@@ -161,7 +193,7 @@ a:focus-visible, button:focus-visible, .drop:focus-visible {
 @media (max-width: 980px) {
   .app { grid-template-columns: 1fr; }
   .sidebar { display: none; }
-  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .kpis, .asset-kpis { grid-template-columns: repeat(2, 1fr); }
   .row-8-4, .row-6-6 { grid-template-columns: 1fr; }
   .hero { flex-direction: column; align-items: flex-start; }
 }
