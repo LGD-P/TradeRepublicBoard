@@ -8,6 +8,7 @@
   let { series, theme }: { series: SeriesPoint[]; theme: string } = $props();
 
   let el: HTMLDivElement;
+  let printImg: HTMLImageElement;
   // lightweight-charts types are loaded dynamically; keep these loose.
   let chart: any;
   let valueSeries: any;
@@ -73,7 +74,21 @@
       ro.observe(el);
       chart.applyOptions({ width: el.clientWidth });
     })();
-    return () => { disposed = true; ro?.disconnect(); chart?.remove(); };
+
+    // Canvas doesn't print reliably — snapshot the chart to a static image just
+    // before the print dialog so the value-over-time curve shows on paper/PDF.
+    const onBeforePrint = () => {
+      try { if (chart && printImg) printImg.src = chart.takeScreenshot().toDataURL("image/png"); }
+      catch { /* screenshot unavailable — the chart is simply omitted */ }
+    };
+    window.addEventListener("beforeprint", onBeforePrint);
+
+    return () => {
+      disposed = true;
+      window.removeEventListener("beforeprint", onBeforePrint);
+      ro?.disconnect();
+      chart?.remove();
+    };
   });
 
   // Re-theme when the theme prop changes.
@@ -93,6 +108,7 @@
 
 <div class="vc">
   <div bind:this={el} class="vc-canvas"></div>
+  <img bind:this={printImg} class="vc-print" alt="" />
   {#if tip}
     <div class="vc-tip" style="left:{tip.x}px; top:{tip.y}px">
       <div class="t-date">{tip.date}</div>
@@ -106,6 +122,11 @@
 <style>
   .vc { position: relative; }
   .vc-canvas { width: 100%; }
+  .vc-print { display: none; }
+  @media print {
+    .vc-canvas, .vc-tip { display: none; }
+    .vc-print { display: block; width: 100%; max-width: 100%; height: auto; }
+  }
   .vc-tip {
     position: absolute; pointer-events: none; transform: translate(-50%, -118%);
     background: var(--surface); border: 1px solid var(--hairline); box-shadow: var(--shadow);

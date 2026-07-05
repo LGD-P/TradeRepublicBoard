@@ -160,9 +160,9 @@
                 <td class="n num">{eur(m.value)}</td>
                 <td class="n num {toneClass(m.gain)}">{eurSigned(m.gain)}</td>
               </tr>
-              {#if multi && open[key]}
+              {#if multi}
                 {#each m.instruments as i}
-                  <tr class="sub-row">
+                  <tr class="sub-row {open[key] ? 'is-open' : ''}">
                     <td class="sub-name">{i.name}</td>
                     <td class="n num">{eur(i.buys)}</td>
                     <td class="n num">{eur(i.saveback)}</td>

@@ -90,9 +90,8 @@
                 <td class="n num">{eur(y.value)}</td>
                 <td class="n num {toneClass(y.gain)}">{eurSigned(y.gain)}<span class="cell-pct">{pct(y.gainPct)}</span></td>
               </tr>
-              {#if open[y.year]}
-                {#each y.months as m}
-                  <tr class="sub-row">
+              {#each y.months as m}
+                <tr class="sub-row {open[y.year] ? 'is-open' : ''}">
                     <td class="sub-name">{monthLabel(y.year, m.month)}</td>
                     <td class="n num">{eur(m.buys)}</td>
                     <td class="n num">{eur(m.saveback)}</td>
@@ -100,8 +99,7 @@
                     <td class="n num">{eur(m.value)}</td>
                     <td class="n num {toneClass(m.gain)}">{eurSigned(m.gain)}<span class="cell-pct">{pct(m.gainPct)}</span></td>
                   </tr>
-                {/each}
-              {/if}
+              {/each}
             {/each}
           </tbody>
         </table>

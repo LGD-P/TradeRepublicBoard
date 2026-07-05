@@ -161,6 +161,8 @@ a { color: inherit; }
   transition: transform .15s; }
 .chev.is-open { transform: rotate(90deg); }
 .mono-instr { color: var(--muted); font-weight: 500; margin-left: 4px; }
+.sub-row { display: none; }
+.sub-row.is-open { display: table-row; }
 .sub-row td { background: var(--bg); color: var(--text-2); font-size: 12.5px; }
 .sub-row:hover td { background: var(--bg); }
 .sub-name { padding-left: 30px !important; position: relative; }
@@ -233,7 +235,9 @@ a:focus-visible, button:focus-visible, .drop:focus-visible {
   .sidebar, .topbar { display: none !important; }
   .content { max-width: none; padding: 0; gap: 14px; }
   .card { box-shadow: none; break-inside: avoid; }
-  .seg, .btn, .link-btn, .back, .row-link .go, .chart-legend, .vc, .chart-card { display: none !important; }
+  .seg, .btn, .link-btn, .back, .row-link .go, .chev { display: none !important; }
+  /* unroll every multi-instrument / monthly breakdown so print keeps full detail */
+  .sub-row { display: table-row !important; }
   .kpis { grid-template-columns: repeat(3, 1fr); }
   .row-8-4, .row-6-6, .asset-kpis { grid-template-columns: 1fr; }
   .asset-kpis { display: flex; gap: 26px; flex-wrap: wrap; }
