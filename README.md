@@ -120,7 +120,13 @@ The expected filename is `trade-republic-export.csv` (override with `--watch-nam
 A clean, **fully local** web dashboard (SvelteKit) reads the same CSV **in your
 browser** — nothing is uploaded — and shows KPIs, a portfolio value-over-time
 chart, allocation, a per-ETF/per-stock breakdown, performance, and a tax summary.
+Click any holding to drill into that line year by year and month by month.
 Bilingual (EN/FR), light/dark.
+
+Everything computes on your device: set current prices by hand in **Settings**
+(no price feed needed), **print / save as PDF**, or **export an `.xlsx`** workbook
+— closing the loop with the Python tool. The PDF and the workbook are built
+in-browser, with no network and no third-party library.
 
 Run it with Docker (no Node needed) — served by a small, non-root nginx:
 
