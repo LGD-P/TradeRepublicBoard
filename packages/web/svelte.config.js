@@ -19,7 +19,9 @@ export default {
         "style-src": ["self", "unsafe-inline"],
         "img-src": ["self", "data:"],
         "font-src": ["self"],
-        "connect-src": ["self"],
+        // Network egress is limited to the price proxy only (ISIN in, price out).
+        // Add your Cloudflare Worker origin here when you deploy one.
+        "connect-src": ["self", "http://localhost:8787"],
         "base-uri": ["self"],
         "form-action": ["none"],
         "object-src": ["none"],

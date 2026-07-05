@@ -1,7 +1,7 @@
 <script lang="ts">
   import { eur } from "$lib/format";
   import { lang, setLang, t } from "$lib/i18n";
-  import { clearData, manualPriceMap, resetManualPrices, setManualPrice, usingSample, view } from "$lib/state";
+  import { clearData, manualPriceMap, proxyUrl, refreshedAt, refreshing, refreshPrices, resetManualPrices, setManualPrice, setProxyUrl, usingSample, view } from "$lib/state";
   import { applyTheme, theme } from "$lib/theme";
 
   const holdings = $derived(
@@ -77,6 +77,29 @@
       </table>
     </div>
     <p class="set-note">{hasManual ? $t("set_price_manual_on") : $t("set_price_fallback_on")}</p>
+  </section>
+
+  <!-- Online prices (opt-in — the only networked feature) -->
+  <section class="card">
+    <div class="card-head"><div><h2 class="card-title">{$t("set_online")}</h2><p class="card-sub">{$t("set_online_sub")}</p></div></div>
+    <div class="set-row">
+      <span class="set-k">{$t("set_proxy_url")}</span>
+      <input
+        class="px-input"
+        style="width:240px;text-align:left"
+        type="url"
+        value={$proxyUrl}
+        placeholder="http://localhost:8787"
+        aria-label={$t("set_proxy_url")}
+        onchange={(e) => setProxyUrl((e.target as HTMLInputElement).value.trim())}
+      />
+    </div>
+    <div class="set-row">
+      <span class="set-k">{#if $refreshedAt}{$t("prices_online")} · {$refreshedAt}{/if}</span>
+      <button class="btn" type="button" onclick={() => refreshPrices()} disabled={$refreshing || !$proxyUrl.trim()}>
+        ↻ {$refreshing ? $t("refreshing") : $t("set_refresh_now")}
+      </button>
+    </div>
   </section>
 
   <!-- Data & privacy -->

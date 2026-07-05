@@ -1,0 +1,4 @@
+# Cloudflare Worker config — `npm run deploy` (needs a Cloudflare account).
+name = "traderepublic-price-proxy"
+main = "src/worker.js"
+compatibility_date = "2024-09-23"

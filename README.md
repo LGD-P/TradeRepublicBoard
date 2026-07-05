@@ -147,6 +147,13 @@ The dashboard is a static site (no server processing your data): it can be hoste
 on any static host later. It makes **no network request** unless you opt in to
 price refresh.
 
+**Online prices (opt-in).** A tiny [price proxy](packages/price-proxy) fetches
+current prices **by ISIN** (Deutsche Börse / Xetra, Yahoo fallback) — only the
+ISIN ever leaves your browser, never your holdings. It runs as a local Node
+server (`docker compose up` starts it alongside the app) or a Cloudflare Worker.
+Set its URL in **Settings → Online prices**, then hit **Refresh**. The strict CSP
+limits `connect-src` to that proxy and nothing else.
+
 ## The sheets
 
 | Sheet | Content |

@@ -6,11 +6,19 @@
 
   import { lang, setLang, t } from "$lib/i18n";
   import { NAV } from "$lib/nav";
-  import { errorMsg, loadCsvText, loadSample, restore, usingSample, view } from "$lib/state";
+  import { errorMsg, loadCsvText, loadSample, refreshedAt, refreshing, refreshPrices, restore, usingSample, view } from "$lib/state";
   import { applyTheme, theme, toggleTheme } from "$lib/theme";
   import { exportXlsx } from "$lib/xlsx";
 
   import "../app.css";
+
+  let refreshMsg = $state("");
+  async function onRefresh() {
+    refreshMsg = "";
+    const { ok, fail } = await refreshPrices();
+    if (ok === 0 && fail > 0) refreshMsg = $t("refresh_fail");
+    else if (fail > 0) refreshMsg = `${ok} ✓ · ${fail} ✗`;
+  }
 
   function onExport() {
     const v = get(view);
@@ -75,9 +83,13 @@
         <div class="top-actions">
           <span class="prices-chip">
             <span class="dot"></span>
-            {$usingSample ? $t("prices_sample") : $view?.pricesAreFallback ? $t("prices_lasttx") : $t("prices_manual")}
+            {#if $usingSample}{$t("prices_sample")}
+            {:else if $refreshedAt}{$t("prices_online")} · {$refreshedAt}
+            {:else if $view?.pricesAreFallback}{$t("prices_lasttx")}
+            {:else}{$t("prices_manual")}{/if}
           </span>
-          <button class="btn" type="button" title="Coming soon">↻ {$t("refresh")}</button>
+          {#if refreshMsg}<span class="prices-chip loss">{refreshMsg}</span>{/if}
+          <button class="btn" type="button" onclick={onRefresh} disabled={$refreshing}>↻ {$refreshing ? $t("refreshing") : $t("refresh")}</button>
           <button class="btn" type="button" onclick={() => window.print()}>⎙ {$t("print")}</button>
           <button class="btn" type="button" onclick={onExport}>⭳ {$t("export")}</button>
           <button class="btn" type="button" onclick={toggleTheme}>◐ {$t("theme")}</button>

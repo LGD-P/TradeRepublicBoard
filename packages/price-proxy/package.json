@@ -1,0 +1,11 @@
+{
+  "name": "@traderepublicboard/price-proxy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ISIN-only EUR price proxy (Deutsche Börse / Xetra, Yahoo fallback). Runs as a local Node server or a Cloudflare Worker.",
+  "scripts": {
+    "start": "node src/server.js",
+    "deploy": "wrangler deploy"
+  }
+}

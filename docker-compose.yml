@@ -11,3 +11,16 @@ services:
       - /tmp
     security_opt:
       - no-new-privileges:true
+
+  # Optional: the ISIN-only price proxy (the only networked component).
+  # Point the app at http://localhost:8787 in Settings → Online prices.
+  price-proxy:
+    build: ./packages/price-proxy
+    image: traderepublicboard-price-proxy
+    container_name: traderepublicboard-price-proxy
+    ports:
+      - "8787:8787"
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
