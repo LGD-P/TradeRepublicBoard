@@ -42,6 +42,7 @@
   );
   const onSettings = $derived($page.url.pathname.startsWith("/settings"));
   const titleKey = $derived(onSettings ? "nav_settings" : NAV.find((n) => n.href === activeHref)?.key ?? "nav_overview");
+  const printDate = $derived(new Date().toLocaleDateString($lang === "fr" ? "fr-FR" : "en-GB"));
 </script>
 
 {#if $view}
@@ -69,6 +70,7 @@
             {$usingSample ? $t("prices_sample") : $view?.pricesAreFallback ? $t("prices_lasttx") : $t("prices_manual")}
           </span>
           <button class="btn" type="button" title="Coming soon">↻ {$t("refresh")}</button>
+          <button class="btn" type="button" onclick={() => window.print()}>⎙ {$t("print")}</button>
           <button class="btn" type="button" onclick={toggleTheme}>◐ {$t("theme")}</button>
           <div class="seg">
             <button class="seg-btn {$lang === 'en' ? 'is-on' : ''}" type="button" onclick={() => setLang("en")}>EN</button>
@@ -79,6 +81,11 @@
       </header>
 
       <div class="content">
+        <div class="print-head">
+          <span class="ph-brand">◆ Board</span>
+          <span class="ph-title">{$t(titleKey)}</span>
+          <span class="ph-date">{printDate}</span>
+        </div>
         {@render children()}
       </div>
     </div>

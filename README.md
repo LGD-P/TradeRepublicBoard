@@ -226,6 +226,9 @@ Time-series charts are rendered with
 [TradingView Lightweight Charts™](https://www.tradingview.com/lightweight-charts/)
 (Apache-2.0).
 
+The UI is set in [Inter](https://rsms.me/inter/) by Rasmus Andersson, self-hosted
+(latin subset, no CDN) under the [SIL Open Font License 1.1](packages/web/static/fonts/Inter-OFL.txt).
+
 ## License
 
 [MIT](LICENSE) © LGD-P
