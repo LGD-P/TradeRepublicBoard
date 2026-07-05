@@ -16,7 +16,7 @@
     const v = get(view);
     if (!v) return;
     const date = new Date().toISOString().slice(0, 10);
-    exportXlsx(v, get(t), `traderepublic-board-${date}.xlsx`);
+    exportXlsx(v, get(lang), `traderepublic-board-${date}.xlsx`);
   }
 
   let { children } = $props();
