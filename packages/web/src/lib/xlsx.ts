@@ -159,6 +159,8 @@ class Sheet {
 }
 
 // ---- chart XML ------------------------------------------------------------
+// Distinct, theme-independent slice colours for pie charts (6-hex, no alpha).
+const SLICE = ["2E5E8C", "C9A227", "1B7F3B", "C0392B", "7E8CB0", "E08E45", "5B6472", "8FA0FF"];
 const CNS = 'xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
 function numCache(vals: number[]): string {
   return `<c:numCache><c:formatCode>General</c:formatCode><c:ptCount val="${vals.length}"/>`
@@ -191,12 +193,15 @@ function chartXml(spec: ChartSpec): string {
   let plot: string, legend = "";
   if (spec.kind === "pie") {
     const s0 = spec.series[0];
-    // Pie series mirror openpyxl exactly: no <c:tx>, an <spPr> stroke, cat + val.
-    const ser = `<c:ser><c:idx val="0"/><c:order val="0"/>`
-      + `<c:spPr><a:ln><a:prstDash val="solid"/></a:ln></c:spPr>`
+    // Explicit per-slice colours (no dependency on a theme part) + % labels.
+    const dPts = s0.vals.map((_, i) =>
+      `<c:dPt><c:idx val="${i}"/><c:spPr><a:solidFill><a:srgbClr val="${SLICE[i % SLICE.length]}"/></a:solidFill><a:ln><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></c:spPr></c:dPt>`).join("");
+    const dLbls = `<c:dLbls><c:showLegendKey val="0"/><c:showVal val="0"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="1"/><c:showBubbleSize val="0"/></c:dLbls>`;
+    const ser = `<c:ser><c:idx val="0"/><c:order val="0"/><c:spPr><a:ln><a:prstDash val="solid"/></a:ln></c:spPr>`
+      + dPts
       + catXml(spec)
       + `<c:val><c:numRef><c:f>${esc(s0.valRef)}</c:f>${numCache(s0.vals)}</c:numRef></c:val></c:ser>`;
-    plot = `<c:pieChart><c:varyColors val="1"/>${ser}<c:firstSliceAng val="0"/></c:pieChart>`;
+    plot = `<c:pieChart><c:varyColors val="1"/>${ser}${dLbls}<c:firstSliceAng val="0"/></c:pieChart>`;
     legend = `<c:legend><c:legendPos val="r"/><c:overlay val="0"/></c:legend>`;
   } else {
     const line = spec.kind === "line";
