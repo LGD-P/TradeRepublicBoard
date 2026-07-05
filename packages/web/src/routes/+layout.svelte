@@ -40,7 +40,8 @@
       .find((n) => $page.url.pathname === n.href || $page.url.pathname.startsWith(n.href + "/"))?.href
       ?? "/",
   );
-  const titleKey = $derived(NAV.find((n) => n.href === activeHref)?.key ?? "nav_overview");
+  const onSettings = $derived($page.url.pathname.startsWith("/settings"));
+  const titleKey = $derived(onSettings ? "nav_settings" : NAV.find((n) => n.href === activeHref)?.key ?? "nav_overview");
 </script>
 
 {#if $view}
@@ -55,7 +56,7 @@
         {/each}
       </nav>
       <div class="nav-foot">
-        <a class="nav-item" href="/"><span class="ni-ico">⚙</span>{$t("nav_settings")}</a>
+        <a class="nav-item {onSettings ? 'is-active' : ''}" href="/settings"><span class="ni-ico">⚙</span>{$t("nav_settings")}</a>
       </div>
     </aside>
 
