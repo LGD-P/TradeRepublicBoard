@@ -39,7 +39,7 @@
     <div class="card kpi"><div class="kpi-label">{$t("kpi_contrib")}</div><div class="kpi-value num">{eur(v.kpis.contributions)}</div><div class="kpi-sub">{$t("kpi_contrib_sub")}</div></div>
     <div class="card kpi"><div class="kpi-label">{$t("kpi_saveback")}</div><div class="kpi-value num">{eur(v.kpis.savebackReceived)}</div><div class="kpi-sub">{$t("kpi_saveback_sub")}</div></div>
     <div class="card kpi"><div class="kpi-label">{$t("kpi_cost")}</div><div class="kpi-value num">{eur(v.kpis.totalCost)}</div><div class="kpi-sub">{$t("kpi_cost_sub")}</div></div>
-    <div class="card kpi"><div class="kpi-label">{$t("kpi_fees")}</div><div class="kpi-value num">{eur(v.kpis.fees)}</div><div class="kpi-sub">{$t("kpi_fees_sub")}</div></div>
+    <div class="card kpi"><div class="kpi-label">{$t("kpi_fees")}</div><div class="kpi-value num {v.kpis.fees > 0 ? 'loss' : ''}">{eur(v.kpis.fees)}</div><div class="kpi-sub">{$t("kpi_fees_sub")}</div></div>
     <div class="card kpi"><div class="kpi-label">{$t("kpi_perf")}</div><div class="kpi-value num {toneClass(v.kpis.gain)}">{eurSigned(v.kpis.gain)}</div><div class="kpi-sub {toneClass(v.kpis.gain)}">{pct(v.kpis.gainPct)}</div></div>
     <div class="card kpi"><div class="kpi-label">{$t("kpi_savebackworth")}</div><div class="kpi-value num gain">{eur(v.kpis.savebackContribution)}</div><div class="kpi-sub">{$t("kpi_savebackworth_sub")}</div></div>
   </section>

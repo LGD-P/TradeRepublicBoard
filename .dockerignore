@@ -1,0 +1,23 @@
+# Keep the build context small and free of local/personal artifacts.
+**/node_modules
+**/build
+**/.svelte-kit
+**/dist
+.git
+.github
+
+# Local-only / personal (never send to the Docker daemon)
+CLAUDE.md
+.claude
+sprints
+inbox
+out
+*.bak
+Exportation*.csv
+transactions*.csv
+Suivi_*.xlsx*
+Suivi-Trade-Rep-*.xlsx
+sortie.csv
+generer_suivi.py
+filter_fund.py
+*.xlsx

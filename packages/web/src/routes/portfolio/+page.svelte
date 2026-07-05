@@ -1,22 +1,98 @@
 <script lang="ts">
   import Donut from "$lib/components/Donut.svelte";
-  import HoldingsTable from "$lib/components/HoldingsTable.svelte";
+  import { eur, eurSigned, pct, shares, toneClass } from "$lib/format";
   import { t } from "$lib/i18n";
   import { view } from "$lib/state";
 </script>
 
 {#if $view}
   {@const v = $view}
-  <section class="row-8-4">
-    <div class="card">
-      <div class="card-head">
-        <div><h2 class="card-title">{$t("nav_portfolio")}</h2><p class="card-sub">{$t("pf_sub")}</p></div>
+
+  <!-- ETFs (Récap par ETF style) -->
+  <section class="card">
+    <div class="card-head">
+      <div><h2 class="card-title">{$t("sec_etfs")}</h2><p class="card-sub">{$t("pf_sub")}</p></div>
+    </div>
+    <div class="table-scroll">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>{$t("th_name")}</th>
+            <th class="n">{$t("th_shares")}</th>
+            <th class="n">{$t("th_buys")}</th>
+            <th class="n">{$t("th_saveback")}</th>
+            <th class="n">{$t("th_totalcost")}</th>
+            <th class="n">{$t("th_price")}</th>
+            <th class="n">{$t("th_value")}</th>
+            <th class="n">{$t("th_gainloss")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each v.etfs as e}
+            <tr>
+              <td>{e.name}</td>
+              <td class="n num">{shares(e.shares)}</td>
+              <td class="n num">{eur(e.buys)}</td>
+              <td class="n num">{eur(e.saveback)}</td>
+              <td class="n num">{eur(e.costBasis)}</td>
+              <td class="n num">{eur(e.price)}</td>
+              <td class="n num">{eur(e.value)}</td>
+              <td class="n num {toneClass(e.gain)}">{eurSigned(e.gain)}<span class="cell-pct">{pct(e.gainPct)}</span></td>
+            </tr>
+          {/each}
+          <tr class="tbl-total">
+            <td>{$t("total")}</td>
+            <td class="n">—</td>
+            <td class="n num">{eur(v.kpis.contributions)}</td>
+            <td class="n num">{eur(v.kpis.savebackReceived)}</td>
+            <td class="n num">{eur(v.kpis.totalCost)}</td>
+            <td class="n">—</td>
+            <td class="n num">{eur(v.kpis.currentValue)}</td>
+            <td class="n num {toneClass(v.kpis.gain)}">{eurSigned(v.kpis.gain)}<span class="cell-pct">{pct(v.kpis.gainPct)}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Single stocks -->
+  {#if v.stocks.length}
+    <section class="card">
+      <div class="card-head"><h2 class="card-title">{$t("nav_stocks")}</h2></div>
+      <div class="table-scroll">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>{$t("th_company")}</th>
+              <th class="n">{$t("th_shares")}</th>
+              <th class="n">{$t("th_avgcost")}</th>
+              <th class="n">{$t("th_price")}</th>
+              <th class="n">{$t("th_value")}</th>
+              <th class="n">{$t("th_unrealised")}</th>
+              <th class="n">{$t("th_realised")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each v.stocks as s}
+              <tr>
+                <td>{s.name}</td>
+                <td class="n num">{shares(s.shares)}</td>
+                <td class="n num">{eur(s.avgCost)}</td>
+                <td class="n num">{eur(s.price)}</td>
+                <td class="n num">{eur(s.value)}</td>
+                <td class="n num {toneClass(s.unrealised)}">{eurSigned(s.unrealised)}<span class="cell-pct">{pct(s.unrealisedPct)}</span></td>
+                <td class="n num {toneClass(s.realised)}">{eurSigned(s.realised)}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
       </div>
-      <HoldingsTable etfs={v.etfs} totalCost={v.kpis.totalCost} currentValue={v.kpis.currentValue} gain={v.kpis.gain} gainPct={v.kpis.gainPct} />
-    </div>
-    <div class="card">
-      <div class="card-head"><h2 class="card-title">{$t("c_alloc")}</h2></div>
-      <Donut allocation={v.allocation} total={v.kpis.currentValue} />
-    </div>
+    </section>
+  {/if}
+
+  <!-- Allocation -->
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">{$t("c_alloc")}</h2></div>
+    <Donut allocation={v.allocation} total={v.kpis.currentValue} />
   </section>
 {/if}

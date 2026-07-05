@@ -115,6 +115,32 @@ The expected filename is `trade-republic-export.csv` (override with `--watch-nam
 
 ---
 
+## Web dashboard
+
+A clean, **fully local** web dashboard (SvelteKit) reads the same CSV **in your
+browser** — nothing is uploaded — and shows KPIs, a portfolio value-over-time
+chart, allocation, a per-ETF/per-stock breakdown, performance, and a tax summary.
+Bilingual (EN/FR), light/dark.
+
+Run it with Docker (no Node needed) — served by a small, non-root nginx:
+
+```bash
+docker compose up --build
+# then open http://localhost:8080
+```
+
+Or for development (needs Node 22+):
+
+```bash
+cd packages/web
+npm install
+npm run dev
+```
+
+The dashboard is a static site (no server processing your data): it can be hosted
+on any static host later. It makes **no network request** unless you opt in to
+price refresh.
+
 ## The sheets
 
 | Sheet | Content |

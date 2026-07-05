@@ -6,7 +6,7 @@
 
   import { lang, setLang, t } from "$lib/i18n";
   import { NAV } from "$lib/nav";
-  import { errorMsg, loadCsvText, loadSample, usingSample, view } from "$lib/state";
+  import { errorMsg, loadCsvText, loadSample, restore, usingSample, view } from "$lib/state";
   import { applyTheme, theme, toggleTheme } from "$lib/theme";
 
   import "../app.css";
@@ -16,7 +16,7 @@
 
   onMount(() => {
     applyTheme(get(theme)); // sync the <html data-theme> attribute with the stored value
-    if (!$view) loadSample();
+    if (!$view && !restore()) loadSample(); // restore imported data across refreshes
   });
 
   async function handleFile(f: File) {
