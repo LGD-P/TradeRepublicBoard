@@ -8,8 +8,16 @@
   import { NAV } from "$lib/nav";
   import { errorMsg, loadCsvText, loadSample, restore, usingSample, view } from "$lib/state";
   import { applyTheme, theme, toggleTheme } from "$lib/theme";
+  import { exportXlsx } from "$lib/xlsx";
 
   import "../app.css";
+
+  function onExport() {
+    const v = get(view);
+    if (!v) return;
+    const date = new Date().toISOString().slice(0, 10);
+    exportXlsx(v, get(t), `traderepublic-board-${date}.xlsx`);
+  }
 
   let { children } = $props();
   let dragging = $state(false);
@@ -71,6 +79,7 @@
           </span>
           <button class="btn" type="button" title="Coming soon">↻ {$t("refresh")}</button>
           <button class="btn" type="button" onclick={() => window.print()}>⎙ {$t("print")}</button>
+          <button class="btn" type="button" onclick={onExport}>⭳ {$t("export")}</button>
           <button class="btn" type="button" onclick={toggleTheme}>◐ {$t("theme")}</button>
           <div class="seg">
             <button class="seg-btn {$lang === 'en' ? 'is-on' : ''}" type="button" onclick={() => setLang("en")}>EN</button>
