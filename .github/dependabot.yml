@@ -8,6 +8,14 @@ updates:
     directory: "/packages/web"
     schedule:
       interval: "weekly"
+    groups:
+      # vite and its Svelte plugin have interlocking peer-dependency ranges —
+      # bumping only one on its own reliably breaks install (seen with the
+      # vite 8 / vite-plugin-svelte 7 upgrade). Bundle them into one PR.
+      vite-toolchain:
+        patterns:
+          - "vite"
+          - "@sveltejs/vite-plugin-svelte"
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
