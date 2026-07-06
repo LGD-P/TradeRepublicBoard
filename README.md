@@ -2,7 +2,7 @@
 
 Turn a **Trade Republic** CSV export into a private **portfolio dashboard** —
 dollar-cost averaging (DCA), savebacks, single-stock picking, per-asset
-drilldowns, a tax summary, and a month-by-month *mark-to-market* history.
+drilldowns, a French tax summary, and a month-by-month *mark-to-market* history.
 
 Runs **100 % in your browser** — nothing is uploaded, no account, no server.
 A companion **command-line tool** builds the same view as a polished Excel
@@ -39,11 +39,20 @@ For development instead: `cd packages/web && npm install && npm run dev` (Node 2
   and its investment history, year by year and month by month.
 - **Per-year monthly recap** with **expandable rows**: open a month to see each
   instrument (amounts and gains), the total kept end-of-line.
+- **Issuer & ISIN** — each ETF shows its issuer (iShares, Amundi, Vanguard,
+  Xtrackers…), parsed offline from its name; the ISIN links out to justETF for
+  more detail.
 - **Print / Save as PDF** and **Export `.xlsx`** — the workbook mirrors the CLI
   (styling and charts included), built entirely in-browser with **no dependency
   and no network**.
 - **Prices your way** — type current prices by hand in **Settings**, or fetch
   them online (opt-in, see below). Gains are green, losses red, everywhere.
+- **Privacy blur** — hit 👁 or press `H` to blur every figure at once (a
+  colleague walks by); never leaks into a print.
+- **Responsive sidebar** — collapses to an icon-only rail below ~980px, so
+  navigation still works with two windows side by side.
+
+![Privacy blur](assets/web/privacy-blur.png)
 
 | Per-asset drilldown | Settings (prices, privacy) |
 |---|---|

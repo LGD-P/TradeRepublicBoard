@@ -57,8 +57,7 @@ a { color: inherit; }
 .brand { display: flex; align-items: center; gap: 9px; padding: 6px 8px; }
 .brand-mark { color: var(--accent); font-size: 16px; }
 .brand-name { font-weight: 650; }
-.nav, .nav-foot { display: flex; flex-direction: column; gap: 2px; }
-.nav-foot { margin-top: auto; border-top: 1px solid var(--hairline); padding-top: 10px; }
+.nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 10px;
   border-radius: var(--radius-sm); color: var(--text-2); text-decoration: none;
   font-size: 14px; font-weight: 500; cursor: pointer; }
@@ -242,11 +241,24 @@ a:focus-visible, button:focus-visible, .drop:focus-visible {
 }
 
 @media (max-width: 980px) {
-  .app { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
+  /* Collapse to an icon-only rail instead of hiding navigation entirely, so the
+     app stays usable next to another window (e.g. two halves of a screen). */
+  .app { grid-template-columns: 60px 1fr; }
+  .sidebar { padding: 16px 6px; }
+  .brand { justify-content: center; padding: 6px 0; }
+  .brand-name { display: none; }
+  .nav-item { justify-content: center; padding: 11px 0; }
+  .nav-label { display: none; }
+  .ni-ico { font-size: 17px; }
   .kpis, .asset-kpis { grid-template-columns: repeat(2, 1fr); }
   .row-8-4, .row-6-6 { grid-template-columns: 1fr; }
   .hero { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 460px) {
+  /* True mobile: prioritise content width over a persistent rail. */
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
 }
 
 /* print / save-as-PDF: strip the app chrome, keep a clean paper recap */
