@@ -43,6 +43,12 @@ a { color: inherit; }
 .gain { color: var(--gain); }
 .loss { color: var(--loss); }
 
+/* privacy blur — hide sensitive figures (topbar 👁 or press H) */
+.is-private :is(.hero-value, .hero-delta, .kpi-value, .kpi-sub, .num, .cell-pct,
+  .dc-val, .dc-sub, .al-pct, .al-eur, .mv-eur, .mv-pct, .ak-v, .vc, .donut) {
+  filter: blur(8px); transition: filter .1s ease; user-select: none;
+}
+
 .app { display: grid; grid-template-columns: 216px 1fr; min-height: 100vh; }
 
 /* sidebar */
@@ -243,11 +249,13 @@ a:focus-visible, button:focus-visible, .drop:focus-visible {
 /* print / save-as-PDF: strip the app chrome, keep a clean paper recap */
 .print-head { display: none; }
 @media print {
-  @page { margin: 14mm; }
+  /* margin: 0 removes the browser's own header/footer (page URL, date). */
+  @page { margin: 0; }
   body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .app { display: block; }
+  .is-private * { filter: none !important; } /* never carry the privacy blur into a print */
   .sidebar, .topbar { display: none !important; }
-  .content { max-width: none; padding: 0; gap: 14px; }
+  .content { max-width: none; padding: 14mm; gap: 14px; }
   .card { box-shadow: none; break-inside: avoid; }
   .seg, .btn, .link-btn, .back, .row-link .go, .chev, .chip-x, .app-foot { display: none !important; }
   /* unroll every multi-instrument / monthly breakdown so print keeps full detail */

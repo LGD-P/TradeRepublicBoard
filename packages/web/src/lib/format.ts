@@ -6,14 +6,20 @@ function loc(): string {
   return get(lang) === "fr" ? "fr-FR" : "en-US";
 }
 
-export function eur(v: number): string {
-  return new Intl.NumberFormat(loc(), { style: "currency", currency: "EUR" }).format(v);
+/** Amount with two decimals, localised (no currency symbol). */
+function dec(v: number): string {
+  return new Intl.NumberFormat(loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 }
 
-/** Signed euro, e.g. "+€271.25" / "−€8.42" (localised). */
+/** Euro with the symbol AFTER the number (European convention): "72.34 €". */
+export function eur(v: number): string {
+  return dec(v) + " €";
+}
+
+/** Signed euro, e.g. "+271.25 €" / "−8.42 €" (localised). */
 export function eurSigned(v: number): string {
   const sign = v < 0 ? "−" : "+";
-  return sign + new Intl.NumberFormat(loc(), { style: "currency", currency: "EUR" }).format(Math.abs(v));
+  return sign + dec(Math.abs(v)) + " €";
 }
 
 /** Signed percent from a ratio (0.084 -> "+8.4%"). */

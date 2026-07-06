@@ -30,11 +30,22 @@
   let { children } = $props();
   let dragging = $state(false);
 
+  // Privacy blur: hide sensitive figures in one click / keypress (a colleague walks by).
+  let privacy = $state(false);
+
   onMount(() => {
     // ?theme=dark|light lets you deep-link a specific theme (also used for docs).
     const urlTheme = new URLSearchParams(window.location.search).get("theme");
     applyTheme(urlTheme === "dark" || urlTheme === "light" ? urlTheme : get(theme));
     if (!$view && !restore()) loadSample(); // restore imported data across refreshes
+
+    const onKey = (e: KeyboardEvent) => {
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)) return;
+      if (e.key === "h" || e.key === "H") privacy = !privacy;
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   });
 
   // Opt-in auto-refresh: poll the proxy every minute, only while the tab is visible.
@@ -72,7 +83,7 @@
 </script>
 
 {#if $view}
-  <div class="app">
+  <div class="app {privacy ? 'is-private' : ''}">
     <aside class="sidebar" aria-label="Sections">
       <div class="brand"><span class="brand-mark">◆</span><span class="brand-name">Board</span></div>
       <nav class="nav">
@@ -100,6 +111,7 @@
           <button class="btn" type="button" onclick={onRefresh} disabled={$refreshing} title={$t("refresh_hint")}>↻ {$refreshing ? $t("refreshing") : $t("refresh")}</button>
           <button class="btn" type="button" onclick={() => window.print()}>⎙ {$t("print")}</button>
           <button class="btn" type="button" onclick={onExport}>⭳ {$t("export")}</button>
+          <button class="btn" type="button" onclick={() => (privacy = !privacy)} aria-pressed={privacy} title={$t("privacy_hint")}>{privacy ? "🙈" : "👁"}</button>
           <button class="btn" type="button" onclick={toggleTheme}>◐ {$t("theme")}</button>
           <div class="seg">
             <button class="seg-btn {$lang === 'en' ? 'is-on' : ''}" type="button" onclick={() => setLang("en")}>EN</button>
