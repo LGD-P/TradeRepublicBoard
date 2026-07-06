@@ -34,9 +34,11 @@
   let privacy = $state(false);
 
   onMount(() => {
-    // ?theme=dark|light lets you deep-link a specific theme (also used for docs).
-    const urlTheme = new URLSearchParams(window.location.search).get("theme");
+    // ?theme=dark|light and ?privacy=1 let you deep-link a specific look (also used for docs).
+    const params = new URLSearchParams(window.location.search);
+    const urlTheme = params.get("theme");
     applyTheme(urlTheme === "dark" || urlTheme === "light" ? urlTheme : get(theme));
+    if (params.get("privacy") === "1") privacy = true;
     if (!$view && !restore()) loadSample(); // restore imported data across refreshes
 
     const onKey = (e: KeyboardEvent) => {
@@ -88,8 +90,8 @@
       <div class="brand"><span class="brand-mark">◆</span><span class="brand-name">Board</span></div>
       <nav class="nav">
         {#each NAV.filter((n) => n.href !== "/tax" || $lang === "fr") as n}
-          <a class="nav-item {activeHref === n.href ? 'is-active' : ''}" href={n.href}>
-            <span class="ni-ico">{n.ico}</span>{$t(n.key)}
+          <a class="nav-item {activeHref === n.href ? 'is-active' : ''}" href={n.href} title={$t(n.key)}>
+            <span class="ni-ico">{n.ico}</span><span class="nav-label">{$t(n.key)}</span>
           </a>
         {/each}
       </nav>
