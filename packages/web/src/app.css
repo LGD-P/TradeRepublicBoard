@@ -216,10 +216,10 @@ a { color: inherit; }
 
 /* drop zone (empty state) */
 .empty { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
-.dz { max-width: 520px; text-align: center; }
+.dz { max-width: 520px; width: 100%; text-align: center; }
 .dz h1 { font-size: 26px; font-weight: 640; margin: 0 0 8px; }
 .dz p { color: var(--text-2); margin: 0 0 22px; }
-.drop { border: 2px dashed var(--hairline); border-radius: var(--radius); padding: 40px 28px;
+.drop { display: block; border: 2px dashed var(--hairline); border-radius: var(--radius); padding: 40px 28px;
   background: var(--surface); cursor: pointer; transition: border-color .12s, background .12s; }
 .drop:hover, .drop.drag { border-color: var(--accent); background: var(--accent-soft); }
 .drop .ico { font-size: 30px; color: var(--accent); }
