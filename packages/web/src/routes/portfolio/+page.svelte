@@ -4,6 +4,7 @@
   import Donut from "$lib/components/Donut.svelte";
   import { eur, eurSigned, monthLabel, pct, shares, toneClass } from "$lib/format";
   import { t } from "$lib/i18n";
+  import { providerOf } from "$lib/instrument";
   import { view } from "$lib/state";
 
   let selectedYear = $state<number | null>(null);
@@ -48,8 +49,11 @@
         </thead>
         <tbody>
           {#each v.etfs as e}
+            {@const prov = providerOf(e.name)}
             <tr class="row-link" role="link" tabindex="0" onclick={() => go(e.isin)} onkeydown={(ev) => rowKey(ev, e.isin)}>
-              <td>{e.name}<span class="go">›</span></td>
+              <td>{e.name}<span class="go">›</span>
+                <span class="row-meta">{prov ? `${prov} · ${e.isin}` : e.isin}</span>
+              </td>
               <td class="n num">{shares(e.shares)}</td>
               <td class="n num">{eur(e.buys)}</td>
               <td class="n num">{eur(e.saveback)}</td>

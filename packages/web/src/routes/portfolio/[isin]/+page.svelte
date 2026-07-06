@@ -4,6 +4,7 @@
   import ValueChart from "$lib/components/ValueChart.svelte";
   import { eur, eurSigned, monthLabel, pct, shares, toneClass } from "$lib/format";
   import { t } from "$lib/i18n";
+  import { justetfUrl, providerOf } from "$lib/instrument";
   import { view } from "$lib/state";
   import { theme } from "$lib/theme";
 
@@ -30,7 +31,12 @@
       <div class="ah-title">
         <h2 class="card-title">{a.name}</h2>
         <span class="badge">{a.type === "etf" ? "ETF" : $t("badge_stock")}</span>
-        <span class="ah-isin num">{a.isin}</span>
+        {#if providerOf(a.name)}<span class="ah-issuer">{providerOf(a.name)}</span>{/if}
+        {#if a.type === "etf"}
+          <a class="ah-isin num" href={justetfUrl(a.isin)} target="_blank" rel="noopener noreferrer" title="justETF ↗">{a.isin} ↗</a>
+        {:else}
+          <span class="ah-isin num">{a.isin}</span>
+        {/if}
       </div>
       <p class="card-sub">{$t("a_follow_sub")}</p>
       <div class="asset-kpis">
