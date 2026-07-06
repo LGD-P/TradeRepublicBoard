@@ -15,6 +15,7 @@ const PX_KEY = "trb.px";
 const LIVE_KEY = "trb.live";
 const AT_KEY = "trb.at";
 const PROXY_KEY = "trb.proxy"; // config (localStorage), default off-network target
+const AUTO_KEY = "trb.auto"; // auto-refresh toggle (localStorage)
 
 let model: Model | null = null;
 let manualPrices: Record<string, number> = loadManualPrices();
@@ -50,6 +51,15 @@ function loadProxyUrl(): string {
 export function setProxyUrl(u: string): void {
   proxyUrl.set(u);
   if (typeof localStorage !== "undefined") localStorage.setItem(PROXY_KEY, u);
+}
+
+/** Opt-in: refresh prices every minute while the tab is visible. Off by default. */
+export const autoRefresh = writable<boolean>(
+  typeof localStorage !== "undefined" && localStorage.getItem(AUTO_KEY) === "1",
+);
+export function setAutoRefresh(on: boolean): void {
+  autoRefresh.set(on);
+  if (typeof localStorage !== "undefined") localStorage.setItem(AUTO_KEY, on ? "1" : "");
 }
 
 function loadManualPrices(): Record<string, number> {

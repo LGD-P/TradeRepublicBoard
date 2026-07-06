@@ -94,13 +94,46 @@ python tr_board.py --fi sample_data/transactions_sample.csv --fo demo.xlsx --en
 
 ---
 
-## Coming soon — Cloudflare Pages
+## Deploy to Cloudflare (optional)
 
-The dashboard is a **static site** and the proxy is already **Worker-ready**
-(`wrangler.toml` included). Publishing to **Cloudflare Pages** (app) + **Workers**
-(proxy) — one-click, no server to run — is the next step: deploy the Worker, then
-add its origin to `connect-src` in `packages/web/svelte.config.js`. Until then,
-everything runs locally with Docker.
+The dashboard is a **static site** and the proxy is already a **Worker**. You get
+a shareable URL and anyone can import *their own* CSV — their data stays in their
+browser. All you need is a free Cloudflare account and [`wrangler`](https://developers.cloudflare.com/workers/wrangler/)
+(`npm i -g wrangler`, then `wrangler login`).
+
+**1 — Deploy the price proxy (Worker):**
+
+```bash
+cd packages/price-proxy
+wrangler deploy
+# → https://traderepublic-price-proxy.<your-subdomain>.workers.dev
+```
+
+**2 — Allow that origin in the CSP.** In `packages/web/svelte.config.js`, add the
+Worker URL to `connect-src`:
+
+```js
+"connect-src": ["self", "https://traderepublic-price-proxy.<your-subdomain>.workers.dev"],
+```
+
+**3 — Build and publish the app (Pages, direct upload):**
+
+```bash
+cd packages/web
+npm install && npm run build
+wrangler pages deploy build --project-name traderepublicboard
+# → https://traderepublicboard.pages.dev
+```
+
+Open the Pages URL, then set the Worker URL in **Settings → Online prices**.
+The bundled `static/_redirects` handles client-side routes.
+
+> **Direct upload vs. Git integration.** The commands above use **direct upload**:
+> Cloudflare never gets access to your repository. If you prefer auto-deploy on
+> `git push`, connect the repo in the Pages dashboard instead — but scope the
+> Cloudflare GitHub App to **this repository only**, not "all repositories", so it
+> can't read your other private repos. Logging into Cloudflare *with* GitHub is
+> just SSO (basic profile); repo access is a separate, per-repo grant you control.
 
 ---
 

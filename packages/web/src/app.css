@@ -68,7 +68,16 @@ a { color: inherit; }
 .page-title { font-size: 16px; font-weight: 600; margin: 0; }
 .top-actions { display: flex; align-items: center; gap: 10px; }
 .prices-chip { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); }
+.prices-chip[title]:not([title=""]) { cursor: help; }
 .prices-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.prices-chip .dot.on { background: var(--gain); }
+.chip-x { font: inherit; font-size: 12px; line-height: 1; color: var(--muted); background: transparent;
+  border: 1px solid var(--hairline); border-radius: 50%; width: 20px; height: 20px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.chip-x:hover { color: var(--loss); border-color: var(--loss); }
+.seg-btn.toggle { border: 1px solid var(--hairline); border-radius: var(--radius-sm); min-width: 46px; }
+.seg-btn.toggle.is-on { background: var(--gain); color: #fff; border-color: var(--gain); }
+.seg-btn.toggle:disabled { opacity: .5; cursor: not-allowed; }
 .btn { font: inherit; font-size: 13px; border-radius: var(--radius-sm); border: 1px solid var(--hairline);
   background: transparent; color: var(--text-2); padding: 7px 11px; cursor: pointer; }
 .btn:hover { color: var(--text); }
@@ -79,6 +88,11 @@ a { color: inherit; }
 
 /* content */
 .content { padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 20px; max-width: 1320px; }
+.app-foot { display: flex; align-items: center; gap: 12px; padding-top: 18px; margin-top: 8px;
+  font-size: 12px; color: var(--muted); border-top: 1px solid var(--hairline); }
+.app-foot a { color: var(--text-2); text-decoration: none; }
+.app-foot a:hover { color: var(--accent); }
+.foot-sep { opacity: .5; }
 .card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius);
   box-shadow: var(--shadow); padding: 20px 22px; }
 .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
@@ -235,7 +249,7 @@ a:focus-visible, button:focus-visible, .drop:focus-visible {
   .sidebar, .topbar { display: none !important; }
   .content { max-width: none; padding: 0; gap: 14px; }
   .card { box-shadow: none; break-inside: avoid; }
-  .seg, .btn, .link-btn, .back, .row-link .go, .chev { display: none !important; }
+  .seg, .btn, .link-btn, .back, .row-link .go, .chev, .chip-x, .app-foot { display: none !important; }
   /* unroll every multi-instrument / monthly breakdown so print keeps full detail */
   .sub-row { display: table-row !important; }
   .kpis { grid-template-columns: repeat(3, 1fr); }

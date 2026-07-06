@@ -6,7 +6,7 @@
 
   import { lang, setLang, t } from "$lib/i18n";
   import { NAV } from "$lib/nav";
-  import { errorMsg, loadCsvText, loadSample, refreshedAt, refreshing, refreshPrices, restore, usingSample, view } from "$lib/state";
+  import { autoRefresh, clearData, errorMsg, loadCsvText, loadSample, refreshedAt, refreshing, refreshPrices, restore, usingSample, view } from "$lib/state";
   import { applyTheme, theme, toggleTheme } from "$lib/theme";
   import { exportXlsx } from "$lib/xlsx";
 
@@ -35,6 +35,15 @@
     const urlTheme = new URLSearchParams(window.location.search).get("theme");
     applyTheme(urlTheme === "dark" || urlTheme === "light" ? urlTheme : get(theme));
     if (!$view && !restore()) loadSample(); // restore imported data across refreshes
+  });
+
+  // Opt-in auto-refresh: poll the proxy every minute, only while the tab is visible.
+  $effect(() => {
+    if (!$autoRefresh) return;
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") refreshPrices();
+    }, 60_000);
+    return () => clearInterval(id);
   });
 
   async function handleFile(f: File) {
@@ -68,7 +77,7 @@
     <aside class="sidebar" aria-label="Sections">
       <div class="brand"><span class="brand-mark">◆</span><span class="brand-name">Board</span></div>
       <nav class="nav">
-        {#each NAV as n}
+        {#each NAV.filter((n) => n.href !== "/tax" || $lang === "fr") as n}
           <a class="nav-item {activeHref === n.href ? 'is-active' : ''}" href={n.href}>
             <span class="ni-ico">{n.ico}</span>{$t(n.key)}
           </a>
@@ -83,13 +92,14 @@
       <header class="topbar">
         <h1 class="page-title">{$t(titleKey)}</h1>
         <div class="top-actions">
-          <span class="prices-chip">
-            <span class="dot"></span>
+          <span class="prices-chip" title={$usingSample ? $t("import_hint") : ""}>
+            <span class="dot {$usingSample ? '' : 'on'}"></span>
             {#if $usingSample}{$t("prices_sample")}
             {:else if $refreshedAt}{$t("prices_online")} · {$refreshedAt}
             {:else if $view?.pricesAreFallback}{$t("prices_lasttx")}
             {:else}{$t("prices_manual")}{/if}
           </span>
+          <button class="chip-x" type="button" onclick={clearData} title={$t("set_clear")} aria-label={$t("set_clear")}>✕</button>
           {#if refreshMsg}<span class="prices-chip loss">{refreshMsg}</span>{/if}
           <button class="btn" type="button" onclick={onRefresh} disabled={$refreshing}>↻ {$refreshing ? $t("refreshing") : $t("refresh")}</button>
           <button class="btn" type="button" onclick={() => window.print()}>⎙ {$t("print")}</button>
@@ -110,6 +120,12 @@
           <span class="ph-date">{printDate}</span>
         </div>
         {@render children()}
+        <footer class="app-foot">
+          <span>{$t("foot_oss")}</span>
+          <span class="foot-sep">·</span>
+          <a href="https://github.com/LGD-P/TradeRepublicBoard" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+          <a href="https://github.com/LGD-P/TradeRepublicBoard/issues" target="_blank" rel="noopener noreferrer">{$t("foot_issues")}</a>
+        </footer>
       </div>
     </div>
   </div>

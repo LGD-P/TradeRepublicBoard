@@ -616,8 +616,8 @@ export function buildWorkbookFromView(v: View, lang: "en" | "fr"): Uint8Array {
     sheets.push(sh);
   }
 
-  // ---- Tax ----
-  {
+  // ---- Tax (French legislation — only in the FR workbook) ----
+  if (lang === "fr") {
     const sh = new Sheet(L.sheets[4]);
     [3, 16, 16, 16, 16, 18, 16].forEach((w, i) => sh.width(i + 1, w));
     sh.put(2, 2, L.tax_title, s({ font: fTitle(18), align: A_L }));

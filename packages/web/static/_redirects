@@ -1,0 +1,4 @@
+# Cloudflare Pages SPA fallback: serve the app shell for client-side routes
+# (e.g. /portfolio/<isin>). Existing static assets are served first; this only
+# applies to paths with no matching file. Ignored by the local nginx build.
+/*    /index.html    200
