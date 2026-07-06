@@ -45,8 +45,9 @@ function loadRefreshedAt(): string | null {
   return typeof sessionStorage !== "undefined" ? sessionStorage.getItem(AT_KEY) : null;
 }
 function loadProxyUrl(): string {
-  if (typeof localStorage !== "undefined") return localStorage.getItem(PROXY_KEY) ?? "http://localhost:8787";
-  return "http://localhost:8787";
+  // Empty by default: entering a URL is the opt-in that enables any network.
+  if (typeof localStorage !== "undefined") return localStorage.getItem(PROXY_KEY) ?? "";
+  return "";
 }
 export function setProxyUrl(u: string): void {
   proxyUrl.set(u);
@@ -101,6 +102,8 @@ export function loadCsvText(text: string, sample = false): void {
       if (sample) sessionStorage.removeItem(CSV_KEY);
       else sessionStorage.setItem(CSV_KEY, text);
     }
+    // One live refresh on a real import — a no-op unless a proxy URL is set.
+    if (!sample) void refreshPrices();
   } catch (e) {
     errorMsg.set(e instanceof Error ? e.message : "Could not read this file.");
   }
