@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "decimal.js": "^10.4.3",
-    "lightweight-charts": "^4.2.3"
+    "lightweight-charts": "^5.2.0"
   },
   "devDependencies": {
     "@types/node": "^26.1.0",
