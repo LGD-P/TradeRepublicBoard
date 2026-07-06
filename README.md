@@ -54,10 +54,12 @@ For development instead: `cd packages/web && npm install && npm run dev` (Node 2
 A tiny [price proxy](packages/price-proxy) fetches current prices **by ISIN**
 (Deutsche Börse / Xetra, Yahoo fallback) — **only the ISIN ever leaves your
 browser, never your holdings**. It runs as a local Node server (`docker compose
-up` starts it alongside the app) or a Cloudflare Worker. Set its URL in
-**Settings → Online prices**, then hit **Refresh**. The strict CSP limits
-`connect-src` to that proxy and nothing else. Leave it empty to stay **fully
-offline**.
+up` starts it alongside the app) or a Cloudflare Worker. It's **off by default**:
+flip **Settings → Online prices → Auto-refresh** to **ON** (refreshes on import
+and every minute), or hit **Refresh** for a one-shot. The strict CSP limits
+`connect-src` to that proxy and nothing else. The proxy address is baked into the
+build (`PROXY_URL` in `packages/web/src/lib/state.ts`, `http://localhost:8787` by
+default).
 
 ---
 
@@ -109,8 +111,9 @@ wrangler deploy
 # → https://traderepublic-price-proxy.<your-subdomain>.workers.dev
 ```
 
-**2 — Allow that origin in the CSP.** In `packages/web/svelte.config.js`, add the
-Worker URL to `connect-src`:
+**2 — Point the app at the Worker.** Set the Worker URL in two places:
+`PROXY_URL` in `packages/web/src/lib/state.ts`, and `connect-src` in
+`packages/web/svelte.config.js`:
 
 ```js
 "connect-src": ["self", "https://traderepublic-price-proxy.<your-subdomain>.workers.dev"],
@@ -125,8 +128,9 @@ wrangler pages deploy build --project-name traderepublicboard
 # → https://traderepublicboard.pages.dev
 ```
 
-Open the Pages URL, then set the Worker URL in **Settings → Online prices**.
-The bundled `static/_redirects` handles client-side routes.
+Open the Pages URL — online prices are off by default; turn on
+**Settings → Online prices** to use the Worker. The bundled `static/_redirects`
+handles client-side routes.
 
 > **Direct upload vs. Git integration.** The commands above use **direct upload**:
 > Cloudflare never gets access to your repository. If you prefer auto-deploy on

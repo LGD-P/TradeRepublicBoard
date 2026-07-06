@@ -75,9 +75,9 @@ a { color: inherit; }
   border: 1px solid var(--hairline); border-radius: 50%; width: 20px; height: 20px; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center; padding: 0; }
 .chip-x:hover { color: var(--loss); border-color: var(--loss); }
-.seg-btn.toggle { border: 1px solid var(--hairline); border-radius: var(--radius-sm); min-width: 46px; }
-.seg-btn.toggle.is-on { background: var(--gain); color: #fff; border-color: var(--gain); }
-.seg-btn.toggle:disabled { opacity: .5; cursor: not-allowed; }
+.seg.onoff .seg-btn { min-width: 44px; font-weight: 600; }
+.seg.onoff .seg-btn.on.is-on { background: var(--gain); color: #fff; }
+.seg.onoff .seg-btn.off.is-on { background: var(--loss); color: #fff; }
 .btn { font: inherit; font-size: 13px; border-radius: var(--radius-sm); border: 1px solid var(--hairline);
   background: transparent; color: var(--text-2); padding: 7px 11px; cursor: pointer; }
 .btn:hover { color: var(--text); }

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { eur } from "$lib/format";
   import { lang, setLang, t } from "$lib/i18n";
-  import { autoRefresh, clearData, manualPriceMap, proxyUrl, refreshedAt, refreshing, refreshPrices, resetManualPrices, setAutoRefresh, setManualPrice, setProxyUrl, usingSample, view } from "$lib/state";
+  import { autoRefresh, clearData, manualPriceMap, refreshedAt, refreshing, refreshPrices, resetManualPrices, setAutoRefresh, setManualPrice, usingSample, view } from "$lib/state";
   import { applyTheme, theme } from "$lib/theme";
 
   const holdings = $derived(
@@ -83,31 +83,15 @@
   <section class="card">
     <div class="card-head"><div><h2 class="card-title">{$t("set_online")}</h2><p class="card-sub">{$t("set_online_sub")}</p></div></div>
     <div class="set-row">
-      <span class="set-k">{$t("set_proxy_url")}</span>
-      <input
-        class="px-input"
-        style="width:240px;text-align:left"
-        type="url"
-        value={$proxyUrl}
-        placeholder="http://localhost:8787"
-        aria-label={$t("set_proxy_url")}
-        onchange={(e) => setProxyUrl((e.target as HTMLInputElement).value.trim())}
-      />
-    </div>
-    <div class="set-row">
       <div><span class="set-k">{$t("set_auto")}</span><p class="set-note" style="margin-top:4px">{$t("set_auto_sub")}</p></div>
-      <button
-        class="seg-btn toggle {$autoRefresh ? 'is-on' : ''}"
-        type="button"
-        role="switch"
-        aria-checked={$autoRefresh}
-        disabled={!$proxyUrl.trim()}
-        onclick={() => setAutoRefresh(!$autoRefresh)}
-      >{$autoRefresh ? "ON" : "OFF"}</button>
+      <div class="seg onoff" role="group" aria-label={$t("set_auto")}>
+        <button class="seg-btn on {$autoRefresh ? 'is-on' : ''}" type="button" aria-pressed={$autoRefresh} onclick={() => setAutoRefresh(true)}>ON</button>
+        <button class="seg-btn off {!$autoRefresh ? 'is-on' : ''}" type="button" aria-pressed={!$autoRefresh} onclick={() => setAutoRefresh(false)}>OFF</button>
+      </div>
     </div>
     <div class="set-row">
       <span class="set-k">{#if $refreshedAt}{$t("prices_online")} · {$refreshedAt}{/if}</span>
-      <button class="btn" type="button" onclick={() => refreshPrices()} disabled={$refreshing || !$proxyUrl.trim()}>
+      <button class="btn" type="button" onclick={() => refreshPrices()} disabled={$refreshing}>
         ↻ {$refreshing ? $t("refreshing") : $t("set_refresh_now")}
       </button>
     </div>

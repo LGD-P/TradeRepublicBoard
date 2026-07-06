@@ -14,8 +14,11 @@ const CSV_KEY = "trb.csv";
 const PX_KEY = "trb.px";
 const LIVE_KEY = "trb.live";
 const AT_KEY = "trb.at";
-const PROXY_KEY = "trb.proxy"; // config (localStorage), default off-network target
-const AUTO_KEY = "trb.auto"; // auto-refresh toggle (localStorage)
+const AUTO_KEY = "trb.online"; // online-prices on/off (localStorage)
+
+// The price proxy the app talks to. Local by default; when deploying (e.g. to a
+// Cloudflare Worker) change this AND connect-src in svelte.config.js.
+const PROXY_URL = "http://localhost:8787";
 
 let model: Model | null = null;
 let manualPrices: Record<string, number> = loadManualPrices();
@@ -23,8 +26,6 @@ let livePrices: Record<string, number> = loadLivePrices();
 
 /** Manual current-price overrides (ISIN -> price), for the Settings UI. */
 export const manualPriceMap = writable<Record<string, number>>(manualPrices);
-/** URL of the price proxy (empty = online refresh disabled). */
-export const proxyUrl = writable<string>(loadProxyUrl());
 /** When prices were last refreshed online (display string), null if never. */
 export const refreshedAt = writable<string | null>(loadRefreshedAt());
 /** True while an online refresh is in flight. */
@@ -44,23 +45,15 @@ function loadLivePrices(): Record<string, number> {
 function loadRefreshedAt(): string | null {
   return typeof sessionStorage !== "undefined" ? sessionStorage.getItem(AT_KEY) : null;
 }
-function loadProxyUrl(): string {
-  // Empty by default: entering a URL is the opt-in that enables any network.
-  if (typeof localStorage !== "undefined") return localStorage.getItem(PROXY_KEY) ?? "";
-  return "";
-}
-export function setProxyUrl(u: string): void {
-  proxyUrl.set(u);
-  if (typeof localStorage !== "undefined") localStorage.setItem(PROXY_KEY, u);
-}
 
-/** Opt-in: refresh prices every minute while the tab is visible. Off by default. */
+/** Online prices on/off — OFF by default (zero network until you opt in). When
+ *  on, only ISINs are ever sent to the proxy, never your holdings. */
 export const autoRefresh = writable<boolean>(
   typeof localStorage !== "undefined" && localStorage.getItem(AUTO_KEY) === "1",
 );
 export function setAutoRefresh(on: boolean): void {
   autoRefresh.set(on);
-  if (typeof localStorage !== "undefined") localStorage.setItem(AUTO_KEY, on ? "1" : "");
+  if (typeof localStorage !== "undefined") localStorage.setItem(AUTO_KEY, on ? "1" : "0");
 }
 
 function loadManualPrices(): Record<string, number> {
@@ -102,8 +95,8 @@ export function loadCsvText(text: string, sample = false): void {
       if (sample) sessionStorage.removeItem(CSV_KEY);
       else sessionStorage.setItem(CSV_KEY, text);
     }
-    // One live refresh on a real import — a no-op unless a proxy URL is set.
-    if (!sample) void refreshPrices();
+    // Refresh live prices once on a real import (when online prices are on).
+    if (!sample && get(autoRefresh)) void refreshPrices();
   } catch (e) {
     errorMsg.set(e instanceof Error ? e.message : "Could not read this file.");
   }
@@ -153,8 +146,8 @@ function persistLivePrices(): void {
  *  browser). Manual overrides still win. Returns how many resolved / failed. */
 export async function refreshPrices(): Promise<{ ok: number; fail: number }> {
   const v = get(view);
-  const base = get(proxyUrl).trim().replace(/\/+$/, "");
-  if (!v || !base) return { ok: 0, fail: 0 };
+  const base = PROXY_URL.replace(/\/+$/, "");
+  if (!v) return { ok: 0, fail: 0 };
   const isins = [...new Set([...v.etfs.map((e) => e.isin), ...v.stocks.map((s) => s.isin)])].filter(Boolean);
   if (!isins.length) return { ok: 0, fail: 0 };
   refreshing.set(true);

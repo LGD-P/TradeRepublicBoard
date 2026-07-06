@@ -5,5 +5,6 @@ export const NAV: { href: string; key: Key; ico: string }[] = [
   { href: "/portfolio", key: "nav_portfolio", ico: "◱" },
   { href: "/performance", key: "nav_performance", ico: "◠" },
   { href: "/stocks", key: "nav_stocks", ico: "◈" },
+  { href: "/settings", key: "nav_settings", ico: "⚙" },
   { href: "/tax", key: "nav_tax", ico: "▤" },
 ];

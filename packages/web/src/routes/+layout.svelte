@@ -67,8 +67,7 @@
       .find((n) => $page.url.pathname === n.href || $page.url.pathname.startsWith(n.href + "/"))?.href
       ?? "/",
   );
-  const onSettings = $derived($page.url.pathname.startsWith("/settings"));
-  const titleKey = $derived(onSettings ? "nav_settings" : NAV.find((n) => n.href === activeHref)?.key ?? "nav_overview");
+  const titleKey = $derived(NAV.find((n) => n.href === activeHref)?.key ?? "nav_overview");
   const printDate = $derived(new Date().toLocaleDateString($lang === "fr" ? "fr-FR" : "en-GB"));
 </script>
 
@@ -83,9 +82,6 @@
           </a>
         {/each}
       </nav>
-      <div class="nav-foot">
-        <a class="nav-item {onSettings ? 'is-active' : ''}" href="/settings"><span class="ni-ico">⚙</span>{$t("nav_settings")}</a>
-      </div>
     </aside>
 
     <div class="main">
@@ -101,7 +97,7 @@
           </span>
           <button class="chip-x" type="button" onclick={clearData} title={$t("set_clear")} aria-label={$t("set_clear")}>✕</button>
           {#if refreshMsg}<span class="prices-chip loss">{refreshMsg}</span>{/if}
-          <button class="btn" type="button" onclick={onRefresh} disabled={$refreshing}>↻ {$refreshing ? $t("refreshing") : $t("refresh")}</button>
+          <button class="btn" type="button" onclick={onRefresh} disabled={$refreshing} title={$t("refresh_hint")}>↻ {$refreshing ? $t("refreshing") : $t("refresh")}</button>
           <button class="btn" type="button" onclick={() => window.print()}>⎙ {$t("print")}</button>
           <button class="btn" type="button" onclick={onExport}>⭳ {$t("export")}</button>
           <button class="btn" type="button" onclick={toggleTheme}>◐ {$t("theme")}</button>
