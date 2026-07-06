@@ -183,6 +183,10 @@ prints it as JSON.
 pip install openpyxl pytest && python -m pytest -q
 ```
 
+Contributions welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)**. CI gates every
+PR on correctness (Python + TS parity, web build), security (gitleaks, `npm audit`,
+`pip-audit`, CodeQL), and keeps dependencies current with Dependabot.
+
 ## Credits
 
 Time-series charts use
