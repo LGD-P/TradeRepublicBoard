@@ -1,0 +1,51 @@
+name: Deploy web (Cloudflare Pages)
+
+# Auto-publishes the static dashboard to Cloudflare Pages on every push to main
+# that touches the app (or the shared core it is built from). Uses direct upload
+# via wrangler — Cloudflare never gets access to the repository.
+#
+# Requires two repository secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN  — token with "Cloudflare Pages: Edit" permission
+#   CLOUDFLARE_ACCOUNT_ID — your account id (Workers & Pages → Overview)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/web/**"
+      - "packages/core/**"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build & publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Install core (source dependency of the web app)
+        run: npm ci
+        working-directory: packages/core
+      - name: Install web
+        run: npm ci
+        working-directory: packages/web
+      - name: Build (static)
+        run: npm run build
+        working-directory: packages/web
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # --branch=main marks this as a production deploy (not a preview alias).
+          command: pages deploy packages/web/build --project-name=traderepublicboard --branch=main
