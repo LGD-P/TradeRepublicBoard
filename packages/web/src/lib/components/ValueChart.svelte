@@ -35,6 +35,8 @@
       const lc = await import("lightweight-charts");
       if (disposed) return;
       const col = colors();
+      // lightweight-charts v5 replaced chart.addLineSeries()/addAreaSeries() with
+      // addSeries(<SeriesDefinition>, options) — see lib/components/ValueChart.svelte.
       chart = lc.createChart(el, {
         height: 300,
         layout: { background: { color: "transparent" }, textColor: col.muted,
@@ -49,11 +51,11 @@
         handleScroll: false,
         handleScale: false,
       });
-      costSeries = chart.addLineSeries({
+      costSeries = chart.addSeries(lc.LineSeries, {
         color: col.loss, lineWidth: 1, lineStyle: 2,
         priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
       });
-      valueSeries = chart.addAreaSeries({
+      valueSeries = chart.addSeries(lc.AreaSeries, {
         lineColor: col.accent, lineWidth: 2,
         topColor: col.accent + "22", bottomColor: col.accent + "05",
         priceLineVisible: false, lastValueVisible: false,
