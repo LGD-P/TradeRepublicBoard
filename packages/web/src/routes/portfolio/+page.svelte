@@ -119,6 +119,7 @@
   {#if v.years.length}
     {@const yr = selectedYear ?? v.years[v.years.length - 1]}
     {@const detail = v.byYear[yr]}
+    {@const ytot = detail.monthly.reduce((a, m) => ({ buys: a.buys + m.buys, saveback: a.saveback + m.saveback, cost: a.cost + m.cost, value: a.value + m.value, gain: a.gain + m.gain }), { buys: 0, saveback: 0, cost: 0, value: 0, gain: 0 })}
     <section class="card">
       <div class="card-head">
         <div><h2 class="card-title">{$t("sec_byyear")}</h2><p class="card-sub">{$t("byyear_sub")}</p></div>
@@ -177,6 +178,14 @@
                 {/each}
               {/if}
             {/each}
+            <tr class="tbl-total">
+              <td>{$t("total")} {yr}</td>
+              <td class="n num">{eur(ytot.buys)}</td>
+              <td class="n num">{eur(ytot.saveback)}</td>
+              <td class="n num">{eur(ytot.cost)}</td>
+              <td class="n num">{eur(ytot.value)}</td>
+              <td class="n num {toneClass(ytot.gain)}">{eurSigned(ytot.gain)}</td>
+            </tr>
           </tbody>
         </table>
       </div>

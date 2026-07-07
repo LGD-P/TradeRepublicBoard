@@ -11,7 +11,41 @@
     const months = r === "1M" ? 1 : r === "6M" ? 6 : 12;
     return series.slice(Math.max(0, series.length - (months + 1)));
   }
+
+  // Month-by-month table: click a header to sort. Chronological by default;
+  // numeric columns default to descending (biggest first) on first click.
+  type SortKey = "date" | "cost" | "value" | "gain";
+  let sortKey = $state<SortKey>("date");
+  let sortDir = $state(1); // 1 = ascending, -1 = descending
+  function sortBy(k: SortKey) {
+    if (sortKey === k) sortDir = -sortDir;
+    else { sortKey = k; sortDir = k === "date" ? 1 : -1; }
+  }
+  const monthlyRows = $derived.by(() => {
+    const v = $view;
+    if (!v) return [];
+    const rows = v.series.map((p) => ({ year: p.year, month: p.month, cost: p.cost, value: p.value, gain: p.value - p.cost }));
+    rows.sort((a, b) => {
+      const d = sortKey === "date" ? (a.year - b.year) || (a.month - b.month)
+        : sortKey === "cost" ? a.cost - b.cost
+        : sortKey === "value" ? a.value - b.value
+        : a.gain - b.gain;
+      return d * sortDir;
+    });
+    return rows;
+  });
 </script>
+
+{#snippet sortTh(key: SortKey, label: string, numeric: boolean)}
+  <th
+    class={numeric ? "n th-sortable" : "th-sortable"}
+    aria-sort={sortKey === key ? (sortDir === 1 ? "ascending" : "descending") : "none"}
+  >
+    <button type="button" class="th-sort" onclick={() => sortBy(key)}>
+      {label}<span class="sort-caret {sortKey === key ? 'on' : ''}">{sortKey === key && sortDir === -1 ? "▾" : "▴"}</span>
+    </button>
+  </th>
+{/snippet}
 
 {#if $view}
   {@const v = $view}
@@ -60,17 +94,23 @@
 
   <section class="card">
     <div class="card-head"><h2 class="card-title">{$t("perf_monthly")}</h2></div>
-    <div class="table-scroll">
+    <div class="table-scroll tall">
       <table class="tbl">
-        <thead><tr><th>{$t("th_month")}</th><th class="n">{$t("th_cost")}</th><th class="n">{$t("th_value")}</th><th class="n">{$t("th_gain")}</th></tr></thead>
+        <thead>
+          <tr>
+            {@render sortTh("date", $t("th_month"), false)}
+            {@render sortTh("cost", $t("th_cost"), true)}
+            {@render sortTh("value", $t("th_value"), true)}
+            {@render sortTh("gain", $t("th_gain"), true)}
+          </tr>
+        </thead>
         <tbody>
-          {#each v.series as p}
-            {@const g = p.value - p.cost}
+          {#each monthlyRows as p (p.year * 12 + p.month)}
             <tr>
               <td>{monthLabel(p.year, p.month)}</td>
               <td class="n num">{eur(p.cost)}</td>
               <td class="n num">{eur(p.value)}</td>
-              <td class="n num {toneClass(g)}">{eurSigned(g)}</td>
+              <td class="n num {toneClass(p.gain)}">{eurSigned(p.gain)}</td>
             </tr>
           {/each}
         </tbody>
