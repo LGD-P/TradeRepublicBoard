@@ -1,0 +1,37 @@
+name: Deploy price proxy (Cloudflare Worker)
+
+# Auto-publishes the price proxy Worker on every push to main that touches it.
+# Reuses the same Cloudflare credentials as the Pages deploy.
+#
+# Requires the same repository secrets as deploy-web.yml:
+#   CLOUDFLARE_API_TOKEN  — token also needs "Workers Scripts: Edit" permission
+#   CLOUDFLARE_ACCOUNT_ID — your account id
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/price-proxy/**"
+      - ".github/workflows/deploy-worker.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publish Worker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Publish to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: packages/price-proxy
+          command: deploy

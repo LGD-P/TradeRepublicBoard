@@ -164,8 +164,25 @@ default**; turn on **Settings → Online prices** to use the Worker. The bundled
 
 **Redeploying later:** re-run the relevant command above (`wrangler deploy` for
 the proxy, `npm run build && wrangler pages deploy build --project-name
-traderepublicboard` for the app). This is **direct upload** — it isn't wired to
-`git push`; redeploy manually after pulling changes.
+traderepublicboard` for the app) — or let the bundled workflows do it (next).
+
+**4 — (optional) Auto-deploy on push.** The repo ships two GitHub Actions
+workflows — [`deploy-web.yml`](.github/workflows/deploy-web.yml) and
+[`deploy-worker.yml`](.github/workflows/deploy-worker.yml) — that redeploy on
+every push to `main` (the app when `packages/web`/`packages/core` change, the
+Worker when `packages/price-proxy` changes). They use the same **direct upload**
+as above, so Cloudflare still never gets access to your repository. To enable
+them, add two repository secrets in **Settings → Secrets and variables →
+Actions**:
+
+- `CLOUDFLARE_ACCOUNT_ID` — from **Workers & Pages → Overview** (right sidebar).
+- `CLOUDFLARE_API_TOKEN` — **My Profile → API Tokens → Create Token → Create
+  Custom Token** with just two account permissions: **Cloudflare Pages: Edit**
+  and **Workers Scripts: Edit**. Nothing else — least privilege.
+
+Until both secrets exist the workflows simply fail (harmless); once set, a push
+to `main` redeploys within a minute. You can also run either from the **Actions**
+tab (**Run workflow**).
 
 > ⚠️ **Never run `npm audit fix --force` in `packages/web`.** SvelteKit's
 > dependency graph includes a low-severity, dev-only advisory (a `cookie` edge
@@ -175,12 +192,13 @@ traderepublicboard` for the app). This is **direct upload** — it isn't wired t
 > build entirely. If `npm install` ever reports vulnerabilities, ignore the
 > suggestion or open an issue — don't `--force` it.
 
-> **Direct upload vs. Git integration.** The commands above use **direct upload**:
-> Cloudflare never gets access to your repository. If you prefer auto-deploy on
-> `git push`, connect the repo in the Pages dashboard instead — but scope the
-> Cloudflare GitHub App to **this repository only**, not "all repositories", so it
-> can't read your other private repos. Logging into Cloudflare *with* GitHub is
-> just SSO (basic profile); repo access is a separate, per-repo grant you control.
+> **Why Actions and not the Pages Git integration.** Both give auto-deploy on
+> `git push`. The bundled workflows keep **direct upload** — the API token lives
+> in *your* repo secrets and Cloudflare never gets access to your code. The
+> dashboard's Git integration instead installs the **Cloudflare GitHub App**; if
+> you go that route, scope it to **this repository only**, not "all repositories",
+> so it can't read your other private repos. (Logging into Cloudflare *with*
+> GitHub is just SSO — basic profile; repo access is a separate, per-repo grant.)
 
 ---
 
