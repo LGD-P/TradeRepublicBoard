@@ -63,3 +63,7 @@ node_modules/
 packages/*/build/
 .vercel/
 .netlify/
+
+# Cloudflare Wrangler local cache/state (account info, not a secret, but never
+# committed — same spirit as node_modules)
+.wrangler/
