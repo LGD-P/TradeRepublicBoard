@@ -20,8 +20,9 @@ export default {
         "img-src": ["self", "data:"],
         "font-src": ["self"],
         // Network egress is limited to the price proxy only (ISIN in, price out).
-        // Add your Cloudflare Worker origin here when you deploy one.
-        "connect-src": ["self", "http://localhost:8787"],
+        // localhost:8787 keeps local Docker/dev working; the Worker origin is
+        // for the deployed (Cloudflare Pages) build.
+        "connect-src": ["self", "http://localhost:8787", "https://traderepublic-price-proxy.trade-republic-board-proxy.workers.dev"],
         "base-uri": ["self"],
         "form-action": ["none"],
         "object-src": ["none"],

@@ -18,7 +18,7 @@ const AUTO_KEY = "trb.online"; // online-prices on/off (localStorage)
 
 // The price proxy the app talks to. Local by default; when deploying (e.g. to a
 // Cloudflare Worker) change this AND connect-src in svelte.config.js.
-const PROXY_URL = "http://localhost:8787";
+const PROXY_URL = "https://traderepublic-price-proxy.trade-republic-board-proxy.workers.dev";
 
 let model: Model | null = null;
 let manualPrices: Record<string, number> = loadManualPrices();
