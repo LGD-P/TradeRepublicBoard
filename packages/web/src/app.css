@@ -72,6 +72,7 @@ a { color: inherit; }
   position: sticky; top: 0; z-index: 5; }
 .page-title { font-size: 16px; font-weight: 600; margin: 0; }
 .top-actions { display: flex; align-items: center; gap: 10px; }
+.menu-toggle { display: none; font-size: 18px; line-height: 1; padding: 5px 12px; }
 .prices-chip { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); }
 .prices-chip[title]:not([title=""]) { cursor: help; }
 .prices-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
@@ -166,6 +167,21 @@ a { color: inherit; }
 .tbl-total td { font-weight: 650; border-bottom: 0; }
 .tbl-total tr:hover td { background: transparent; }
 
+/* sortable headers — click a column to sort; caret shows on hover / when active */
+.tbl th.th-sortable { white-space: nowrap; }
+.th-sort { font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit;
+  background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex;
+  align-items: center; gap: 4px; }
+.th-sort:hover { color: var(--text-2); }
+.sort-caret { font-size: 8px; opacity: 0; transition: opacity .12s; }
+.th-sort:hover .sort-caret { opacity: .5; }
+.sort-caret.on { opacity: 1; color: var(--accent); }
+
+/* tall tables scroll inside the card with a sticky header (long histories) */
+.table-scroll.tall { max-height: 460px; overflow-y: auto; }
+.table-scroll.tall thead th { position: sticky; top: 0; z-index: 1; background: var(--surface);
+  box-shadow: inset 0 -1px 0 var(--hairline); }
+
 /* clickable holding rows → asset detail */
 .row-link { cursor: pointer; }
 .row-link .go { color: var(--muted); font-weight: 600; margin-left: 6px; opacity: 0;
@@ -256,9 +272,31 @@ a:focus-visible, button:focus-visible, .drop:focus-visible {
 }
 
 @media (max-width: 460px) {
-  /* True mobile: prioritise content width over a persistent rail. */
-  .app { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
+  /* True mobile: keep a slim icon rail so section navigation still works on a
+     phone (the topbar actions have already moved into the ⋯ menu). */
+  .app { grid-template-columns: 52px 1fr; }
+  .sidebar { padding: 14px 4px; }
+  .nav-item { padding: 11px 0; }
+}
+
+@media (max-width: 720px) {
+  /* The topbar's action row doesn't fit on a phone: collapse it behind a ⋯
+     button that drops the actions down as a compact menu. */
+  .topbar { padding: 0 14px; }
+  .content { padding: 18px 14px 34px; }
+  .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+  .top-actions {
+    position: absolute; top: calc(100% + 6px); right: 12px; z-index: 20;
+    display: none; flex-direction: column; align-items: stretch; gap: 8px;
+    min-width: 210px; max-width: calc(100vw - 24px); padding: 12px;
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .top-actions.is-open { display: flex; }
+  .top-actions .btn { width: 100%; text-align: left; padding: 9px 12px; }
+  .top-actions .seg { width: 100%; }
+  .top-actions .seg-btn { flex: 1; text-align: center; }
+  .prices-chip { padding: 2px 2px 8px; border-bottom: 1px solid var(--hairline); }
 }
 
 /* print / save-as-PDF: strip the app chrome, keep a clean paper recap */
@@ -278,7 +316,9 @@ a:focus-visible, button:focus-visible, .drop:focus-visible {
   .kpis { grid-template-columns: repeat(3, 1fr); }
   .row-8-4, .row-6-6, .asset-kpis { grid-template-columns: 1fr; }
   .asset-kpis { display: flex; gap: 26px; flex-wrap: wrap; }
-  .table-scroll { overflow: visible; }
+  .table-scroll, .table-scroll.tall { overflow: visible; max-height: none; }
+  .table-scroll.tall thead th { position: static; box-shadow: none; }
+  .sort-caret { display: none; }
   .tbl tr:hover td, .row-link:hover td { background: transparent; }
   .print-head { display: flex; align-items: baseline; justify-content: space-between;
     gap: 12px; border-bottom: 2px solid var(--text); padding-bottom: 8px; }

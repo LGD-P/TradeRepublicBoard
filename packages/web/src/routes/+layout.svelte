@@ -12,8 +12,12 @@
 
   import "../app.css";
 
+  // On narrow screens the action buttons collapse into a compact ⋯ menu.
+  let menuOpen = $state(false);
+
   let refreshMsg = $state("");
   async function onRefresh() {
+    menuOpen = false;
     refreshMsg = "";
     const { ok, fail } = await refreshPrices();
     if (ok === 0 && fail > 0) refreshMsg = $t("refresh_fail");
@@ -21,6 +25,7 @@
   }
 
   function onExport() {
+    menuOpen = false;
     const v = get(view);
     if (!v) return;
     const date = new Date().toISOString().slice(0, 10);
@@ -45,9 +50,21 @@
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)) return;
       if (e.key === "h" || e.key === "H") privacy = !privacy;
+      if (e.key === "Escape") menuOpen = false;
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  });
+
+  // Close the mobile action menu when clicking anywhere outside it.
+  $effect(() => {
+    if (!menuOpen) return;
+    const onDown = (e: Event) => {
+      const el = e.target as HTMLElement;
+      if (!el.closest(".top-actions") && !el.closest(".menu-toggle")) menuOpen = false;
+    };
+    window.addEventListener("pointerdown", onDown);
+    return () => window.removeEventListener("pointerdown", onDown);
   });
 
   // Opt-in auto-refresh: poll the proxy every minute, only while the tab is visible.
@@ -100,7 +117,8 @@
     <div class="main">
       <header class="topbar">
         <h1 class="page-title">{$t(titleKey)}</h1>
-        <div class="top-actions">
+        <button class="btn menu-toggle" type="button" onclick={() => (menuOpen = !menuOpen)} aria-expanded={menuOpen} aria-label="Menu">⋯</button>
+        <div class="top-actions {menuOpen ? 'is-open' : ''}">
           <span class="prices-chip" title={$usingSample ? $t("import_hint") : ""}>
             <span class="dot {$usingSample ? '' : 'on'}"></span>
             {#if $usingSample}{$t("prices_sample")}
@@ -108,10 +126,10 @@
             {:else if $view?.pricesAreFallback}{$t("prices_lasttx")}
             {:else}{$t("prices_manual")}{/if}
           </span>
-          <button class="chip-x" type="button" onclick={clearData} title={$t("set_clear")} aria-label={$t("set_clear")}>✕</button>
+          <button class="chip-x" type="button" onclick={() => { menuOpen = false; clearData(); }} title={$t("set_clear")} aria-label={$t("set_clear")}>✕</button>
           {#if refreshMsg}<span class="prices-chip loss">{refreshMsg}</span>{/if}
           <button class="btn" type="button" onclick={onRefresh} disabled={$refreshing} title={$t("refresh_hint")}>↻ {$refreshing ? $t("refreshing") : $t("refresh")}</button>
-          <button class="btn" type="button" onclick={() => window.print()}>⎙ {$t("print")}</button>
+          <button class="btn" type="button" onclick={() => { menuOpen = false; window.print(); }}>⎙ {$t("print")}</button>
           <button class="btn" type="button" onclick={onExport}>⭳ {$t("export")}</button>
           <button class="btn" type="button" onclick={() => (privacy = !privacy)} aria-pressed={privacy} title={$t("privacy_hint")}>{privacy ? "🙈" : "👁"}</button>
           <button class="btn" type="button" onclick={toggleTheme}>◐ {$t("theme")}</button>
@@ -119,7 +137,7 @@
             <button class="seg-btn {$lang === 'en' ? 'is-on' : ''}" type="button" onclick={() => setLang("en")}>EN</button>
             <button class="seg-btn {$lang === 'fr' ? 'is-on' : ''}" type="button" onclick={() => setLang("fr")}>FR</button>
           </div>
-          <label class="btn" style="cursor:pointer">＋ {$t("import")}<input type="file" accept=".csv" onchange={onInput} hidden /></label>
+          <label class="btn" style="cursor:pointer">＋ {$t("import")}<input type="file" accept=".csv" onchange={(e) => { menuOpen = false; onInput(e); }} hidden /></label>
         </div>
       </header>
 
