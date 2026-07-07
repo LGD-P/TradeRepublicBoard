@@ -109,23 +109,43 @@ python tr_board.py --fi sample_data/transactions_sample.csv --fo demo.xlsx --en
 
 The dashboard is a **static site** and the proxy is already a **Worker**. You get
 a shareable URL and anyone can import *their own* CSV — their data stays in their
-browser. All you need is a free Cloudflare account and [`wrangler`](https://developers.cloudflare.com/workers/wrangler/)
-(`npm i -g wrangler`, then `wrangler login`).
+browser. All you need is a free Cloudflare account.
 
-**1 — Deploy the price proxy (Worker):**
+**Prerequisite: Node 22+.** `wrangler` refuses to run on anything older. If
+`node -v` shows < 22 (common with Ubuntu/WSL's default `apt` package, which is
+stuck on Node 18), install a current one — no `sudo` needed:
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+source ~/.bashrc          # reload the shell so `nvm` is available
+nvm install 22 && nvm use 22
+node -v                   # should print v22.x
+```
+
+**1 — Log in and deploy the price proxy (Worker):**
 
 ```bash
 cd packages/price-proxy
-wrangler deploy
+npx wrangler login        # opens a browser tab to authorise the CLI
+npx wrangler deploy
 # → https://traderepublic-price-proxy.<your-subdomain>.workers.dev
 ```
 
-**2 — Point the app at the Worker.** Set the Worker URL in two places:
-`PROXY_URL` in `packages/web/src/lib/state.ts`, and `connect-src` in
-`packages/web/svelte.config.js`:
+Note the URL — you'll need it in the next step. First deploy on a fresh account
+creates the Workers project automatically.
+
+**2 — Point the app at the Worker.** Set that URL in two places —
+`PROXY_URL` in `packages/web/src/lib/state.ts`:
 
 ```js
-"connect-src": ["self", "https://traderepublic-price-proxy.<your-subdomain>.workers.dev"],
+const PROXY_URL = "https://traderepublic-price-proxy.<your-subdomain>.workers.dev";
+```
+
+— and `connect-src` in `packages/web/svelte.config.js` (keep `localhost:8787`
+too, so local Docker/dev still works from the same build):
+
+```js
+"connect-src": ["self", "http://localhost:8787", "https://traderepublic-price-proxy.<your-subdomain>.workers.dev"],
 ```
 
 **3 — Build and publish the app (Pages, direct upload):**
@@ -133,13 +153,27 @@ wrangler deploy
 ```bash
 cd packages/web
 npm install && npm run build
-wrangler pages deploy build --project-name traderepublicboard
+npx wrangler pages deploy build --project-name traderepublicboard
 # → https://traderepublicboard.pages.dev
 ```
 
-Open the Pages URL — online prices are off by default; turn on
-**Settings → Online prices** to use the Worker. The bundled `static/_redirects`
-handles client-side routes.
+First deploy creates the Pages project and asks for a production branch name —
+the defaults are fine. Open the Pages URL — online prices are **off by
+default**; turn on **Settings → Online prices** to use the Worker. The bundled
+`static/_redirects` handles client-side routes.
+
+**Redeploying later:** re-run the relevant command above (`wrangler deploy` for
+the proxy, `npm run build && wrangler pages deploy build --project-name
+traderepublicboard` for the app). This is **direct upload** — it isn't wired to
+`git push`; redeploy manually after pulling changes.
+
+> ⚠️ **Never run `npm audit fix --force` in `packages/web`.** SvelteKit's
+> dependency graph includes a low-severity, dev-only advisory (a `cookie` edge
+> case, irrelevant to this static-adapter app and excluded from the CI gate,
+> which only checks shipped/production dependencies). `--force` "fixes" it by
+> downgrading `@sveltejs/kit` to a pre-1.0 alpha from 2020, which breaks the
+> build entirely. If `npm install` ever reports vulnerabilities, ignore the
+> suggestion or open an issue — don't `--force` it.
 
 > **Direct upload vs. Git integration.** The commands above use **direct upload**:
 > Cloudflare never gets access to your repository. If you prefer auto-deploy on
